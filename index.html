@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#ffffff" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Registrasi" />
+<title>Registrasi Training</title>
+<link rel="manifest" href="manifest.json" />
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f4;
+    --bg3: #eeede9;
+    --text: #1a1a1a;
+    --text2: #6b6b6b;
+    --text3: #999;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --green-bg: #eaf3de;
+    --green-text: #3b6d11;
+    --red-bg: #fcebeb;
+    --red-text: #a32d2d;
+    --blue-bg: #e6f1fb;
+    --blue-text: #185fa5;
+    --amber-bg: #faeeda;
+    --amber-text: #854f0b;
+    --accent: #1a1a1a;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --bg2: #2c2c2e;
+      --bg3: #3a3a3c;
+      --text: #f2f2f7;
+      --text2: #aeaeb2;
+      --text3: #636366;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+      --green-bg: #173404;
+      --green-text: #c0dd97;
+      --red-bg: #501313;
+      --red-text: #f7c1c1;
+      --blue-bg: #042c53;
+      --blue-text: #b5d4f4;
+      --amber-bg: #412402;
+      --amber-text: #fac775;
+      --accent: #f2f2f7;
+    }
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg3);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--bg3);
+  }
+
+  header {
+    padding: 16px 20px 0;
+    text-align: center;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  header p {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 14px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg3);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+    background: var(--bg2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .tab-btn.active {
+    background: var(--bg);
+    color: var(--text);
+    border-color: var(--border2);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .panel { display: none; padding: 0 16px 32px; }
+  .panel.active { display: block; }
+
+  .card {
+    background: var(--bg);
+    border-radius: var(--radius);
+    border: 0.5px solid var(--border);
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title svg { flex-shrink: 0; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  input[type=text], input[type=password] {
+    width: 100%;
+    padding: 13px 14px;
+    font-size: 16px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text);
+    margin-bottom: 12px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input[type=text]:focus, input[type=password]:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    background: var(--bg);
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+    -webkit-appearance: none;
+  }
+
+  .btn:active { transform: scale(0.97); opacity: 0.85; }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: transparent;
+  }
+
+  .btn-sm {
+    width: auto;
+    padding: 7px 14px;
+    font-size: 13px;
+  }
+
+  .msg {
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    margin-top: 10px;
+    display: none;
+    line-height: 1.5;
+  }
+
+  .msg.show { display: block; }
+  .msg.error { background: var(--red-bg); color: var(--red-text); }
+  .msg.success { background: var(--green-bg); color: var(--green-text); }
+  .msg.info { background: var(--blue-bg); color: var(--blue-text); }
+
+  .divider { height: 0.5px; background: var(--border); margin: 18px 0; }
+
+  .result-section { display: none; }
+  .result-section.show { display: block; }
+
+  .name-big { font-size: 22px; font-weight: 700; text-align: center; }
+  .name-sub { font-size: 14px; color: var(--text2); text-align: center; margin-top: 4px; margin-bottom: 18px; }
+
+  .qr-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+
+  .qr-inner {
+    background: #fff;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border);
+    display: inline-block;
+  }
+
+  .qr-hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  .pin-center {
+    text-align: center;
+    padding: 12px 0;
+  }
+
+  .pin-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: var(--bg2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .pin-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .pin-sub { font-size: 14px; color: var(--text2); margin-bottom: 20px; }
+
+  input#pin-input {
+    text-align: center;
+    letter-spacing: 8px;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .scan-area {
+    border: 2px dashed var(--border2);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #000;
+    position: relative;
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #reader {
+    width: 100%;
+  }
+
+  #reader video {
+    width: 100% !important;
+    height: auto !important;
+    display: block;
+  }
+
+  .scan-hint {
+    font-size: 13px;
+    color: var(--text2);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .person-card {
+    background: var(--bg2);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .person-name { font-size: 17px; font-weight: 600; }
+  .person-sub { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .badge-present { background: var(--green-bg); color: var(--green-text); }
+  .badge-pending { background: var(--amber-bg); color: var(--amber-text); }
+
+  .checkin-section { display: none; margin-top: 14px; }
+  .checkin-section.show { display: block; }
+
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .loader {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .scan-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    color: #fff;
+    font-size: 14px;
+    background: rgba(0,0,0,0.6);
+    z-index: 5;
+  }
+
+  .scan-overlay.hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Registrasi Training</h1>
+    <p>Cari data & dapatkan QR absensi</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('register')" id="tab-register">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h3v3H7zm7 0h3v3h-3zm-7 7h3v3H7zm7 0h3v3h-3z"/></svg>
+      Registrasi
+    </button>
+    <button class="tab-btn" onclick="switchTab('admin')" id="tab-admin">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"/><circle cx="19" cy="7" r="3" fill="currentColor" stroke="none"/></svg>
+      Admin
+    </button>
+  </div>
+
+  <!-- REGISTER TAB -->
+  <div id="panel-register" class="panel active">
+    <div class="card">
+      <div class="card-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Cari Peserta
+      </div>
+      <label for="search-input">Nama lengkap atau nomor WhatsApp</label>
+      <input type="text" id="search-input" placeholder="Cth: Budi Santoso atau 08123456789" autocomplete="off" autocorrect="off" spellcheck="false" />
+      <button class="btn btn-primary" onclick="doLookup()" id="lookup-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Cari & Tampilkan QR
+      </button>
+      <div id="lookup-msg" class="msg"></div>
+
+      <div id="result-section" class="result-section">
+        <div class="divider"></div>
+        <div class="name-big" id="res-name"></div>
+        <div class="name-sub" id="res-sub"></div>
+        <div class="qr-wrap">
+          <div class="qr-inner">
+            <div id="qr-canvas"></div>
+          </div>
+        </div>
+        <p class="qr-hint">Tunjukkan QR ini ke panitia untuk absensi</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN TAB -->
+  <div id="panel-admin" class="panel">
+
+    <div id="pin-screen" class="card">
+      <div class="pin-center">
+        <div class="pin-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="pin-title">Halaman Admin</div>
+        <div class="pin-sub">Masukkan PIN untuk melanjutkan</div>
+        <label for="pin-input">PIN</label>
+        <input type="password" id="pin-input" placeholder="••••••" maxlength="6" inputmode="numeric" />
+        <button class="btn btn-primary" onclick="checkPin()">Masuk</button>
+        <div id="pin-msg" class="msg"></div>
+      </div>
+    </div>
+
+    <div id="admin-panel" style="display:none;">
+      <div class="card">
+        <div class="admin-header">
+          <div class="card-title" style="margin-bottom:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"/><circle cx="19" cy="7" r="3" fill="currentColor" stroke="none"/></svg>
+            Scanner QR
+          </div>
+          <button class="btn btn-sm" onclick="lockAdmin()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Kunci
+          </button>
+        </div>
+
+        <div style="margin-top:14px;">
+          <div class="scan-area" id="scan-area">
+            <div id="reader"></div>
+            <div class="scan-overlay" id="scan-overlay">
+              <span class="loader"></span>
+              <span>Memulai kamera...</span>
+            </div>
+          </div>
+          <p class="scan-hint" id="scan-hint">Arahkan kamera ke QR code peserta</p>
+        </div>
+
+        <div class="checkin-section" id="checkin-section">
+          <div class="divider"></div>
+          <div class="person-card">
+            <div>
+              <div class="person-name" id="ci-name"></div>
+              <div class="person-sub" id="ci-sub"></div>
+            </div>
+            <span class="badge" id="ci-badge"></span>
+          </div>
+          <button class="btn btn-primary" id="ci-btn" onclick="doCheckin()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Tandai Hadir
+          </button>
+          <div id="ci-msg" class="msg"></div>
+          <button class="btn" style="margin-top:8px;" onclick="resetScan()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Scan Ulang
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR Code generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- QR Scanner -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx5M9rBcq2FTkk8dpvrA8a8TCVXfOOmDN9hIQ4L9OIPc3xvI83Oew-JUtICafUjEv71/exec";
+const PIN = "778899";
+
+let currentRow = null;
+let scanner = null;
+let scannerRunning = false;
+
+/* ── Tab switching ── */
+function switchTab(tab) {
+  ['register','admin'].forEach(t => {
+    document.getElementById('panel-' + t).classList.toggle('active', t === tab);
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab !== 'admin' && scannerRunning) stopScanner();
+}
+
+/* ── Message helper ── */
+function showMsg(id, type, text) {
+  const el = document.getElementById(id);
+  el.className = 'msg show ' + type;
+  el.textContent = text;
+}
+
+function hideMsg(id) {
+  document.getElementById(id).className = 'msg';
+}
+
+/* ── Participant lookup + QR ── */
+async function doLookup() {
+  const q = document.getElementById('search-input').value.trim();
+  if (!q) { showMsg('lookup-msg','error','Masukkan nama atau nomor WhatsApp terlebih dahulu.'); return; }
+
+  const btn = document.getElementById('lookup-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Mencari...';
+  showMsg('lookup-msg','info','Mencari data peserta...');
+  document.getElementById('result-section').classList.remove('show');
+
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=lookup&query=' + encodeURIComponent(q));
+    const data = await res.json();
+
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Cari & Tampilkan QR';
+
+    if (!data.success) {
+      showMsg('lookup-msg','error','Data tidak ditemukan. Periksa kembali nama atau nomor WhatsApp.');
+      return;
+    }
+
+    hideMsg('lookup-msg');
+    currentRow = data.rowIndex;
+
+    document.getElementById('res-name').textContent = data.nama;
+    const sub = [];
+    if (data.namaPanggilan) sub.push('"' + data.namaPanggilan + '"');
+    if (data.wa) sub.push(data.wa);
+    document.getElementById('res-sub').textContent = sub.join(' · ');
+
+    const qrDiv = document.getElementById('qr-canvas');
+    qrDiv.innerHTML = '';
+    new QRCode(qrDiv, {
+      text: JSON.stringify({ row: data.rowIndex, nama: data.nama }),
+      width: 200,
+      height: 200,
+      correctLevel: QRCode.CorrectLevel.M
+    });
+
+    document.getElementById('result-section').classList.add('show');
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Cari & Tampilkan QR';
+    showMsg('lookup-msg','error','Gagal terhubung ke server. Coba lagi.');
+  }
+}
+
+document.getElementById('search-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLookup(); });
+
+/* ── PIN ── */
+function checkPin() {
+  const val = document.getElementById('pin-input').value;
+  if (val === PIN) {
+    document.getElementById('pin-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    startScanner();
+  } else {
+    showMsg('pin-msg','error','PIN salah. Coba lagi.');
+    document.getElementById('pin-input').value = '';
+  }
+}
+
+document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPin(); });
+
+function lockAdmin() {
+  stopScanner();
+  document.getElementById('pin-screen').style.display = 'block';
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('pin-input').value = '';
+  document.getElementById('checkin-section').classList.remove('show');
+  hideMsg('pin-msg');
+}
+
+/* ── Scanner ── */
+function startScanner() {
+  if (scannerRunning) return;
+  document.getElementById('scan-overlay').classList.remove('hidden');
+
+  scanner = new Html5Qrcode("reader");
+  scanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
+    onScanSuccess,
+    () => {}
+  ).then(() => {
+    scannerRunning = true;
+    document.getElementById('scan-overlay').classList.add('hidden');
+    document.getElementById('scan-hint').textContent = 'Arahkan kamera ke QR code peserta';
+  }).catch(err => {
+    document.getElementById('scan-overlay').innerHTML = '<span style="color:#fff;font-size:13px;padding:10px;text-align:center;">Kamera tidak dapat diakses.<br>Pastikan izin kamera diberikan.</span>';
+    console.error(err);
+  });
+}
+
+function stopScanner() {
+  if (scanner && scannerRunning) {
+    scanner.stop().catch(() => {});
+    scannerRunning = false;
+  }
+}
+
+async function onScanSuccess(decoded) {
+  if (!scannerRunning) return;
+  stopScanner();
+  document.getElementById('checkin-section').classList.add('show');
+  document.getElementById('ci-msg').className = 'msg';
+  document.getElementById('ci-btn').style.display = 'flex';
+  document.getElementById('ci-btn').disabled = false;
+
+  try {
+    const parsed = JSON.parse(decoded);
+    const res = await fetch(SCRIPT_URL + '?action=lookup&query=' + encodeURIComponent(parsed.nama));
+    const data = await res.json();
+
+    if (!data.success) { showScanError('Data peserta tidak ditemukan di sheet.'); return; }
+
+    currentRow = data.rowIndex;
+    document.getElementById('ci-name').textContent = data.nama;
+    const sub = [];
+    if (data.namaPanggilan) sub.push('"' + data.namaPanggilan + '"');
+    if (data.wa) sub.push(data.wa);
+    document.getElementById('ci-sub').textContent = sub.join(' · ');
+
+    const already = String(data.status).toLowerCase() === 'present';
+    const badge = document.getElementById('ci-badge');
+    if (already) {
+      badge.textContent = 'Sudah Hadir';
+      badge.className = 'badge badge-present';
+      document.getElementById('ci-btn').style.display = 'none';
+      showMsg('ci-msg','success','Peserta ini sudah tercatat hadir sebelumnya.');
+    } else {
+      badge.textContent = 'Belum Absen';
+      badge.className = 'badge badge-pending';
+    }
+
+  } catch(e) {
+    showScanError('QR tidak valid atau tidak dikenal.');
+  }
+}
+
+function showScanError(msg) {
+  document.getElementById('ci-name').textContent = 'QR Tidak Dikenal';
+  document.getElementById('ci-sub').textContent = msg;
+  document.getElementById('ci-badge').textContent = '';
+  document.getElementById('ci-btn').style.display = 'none';
+  document.getElementById('checkin-section').classList.add('show');
+}
+
+function resetScan() {
+  document.getElementById('checkin-section').classList.remove('show');
+  hideMsg('ci-msg');
+  currentRow = null;
+  startScanner();
+}
+
+/* ── Check-in ── */
+async function doCheckin() {
+  if (!currentRow) return;
+  const btn = document.getElementById('ci-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Menyimpan...';
+  showMsg('ci-msg','info','Mencatat kehadiran...');
+
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=checkin&row=' + currentRow);
+    const data = await res.json();
+
+    if (data.success) {
+      showMsg('ci-msg','success','✓ Kehadiran berhasil dicatat!');
+      btn.style.display = 'none';
+      document.getElementById('ci-badge').textContent = 'Sudah Hadir';
+      document.getElementById('ci-badge').className = 'badge badge-present';
+      setTimeout(() => resetScan(), 2500);
+    } else {
+      showMsg('ci-msg','error','Gagal menyimpan. Coba lagi.');
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Tandai Hadir';
+    }
+  } catch(e) {
+    showMsg('ci-msg','error','Gagal terhubung. Coba lagi.');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Tandai Hadir';
+  }
+}
+</script>
+</body>
+</html>

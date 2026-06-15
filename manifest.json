@@ -1,0 +1,22 @@
+{
+  "name": "Registrasi Training",
+  "short_name": "Registrasi",
+  "description": "Aplikasi registrasi dan absensi peserta training",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/1a1a1a/ffffff?text=R",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/1a1a1a/ffffff?text=R",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
