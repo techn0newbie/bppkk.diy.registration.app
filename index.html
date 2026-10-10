@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Registrasi Vikep DIY</title>
+<link rel="icon" href="favicon.png" type="image/png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1a56db; --green-light: #EBF5FF; --green-dark: #1a3a6e;
+    --teal: #1447c0; --amber: #BA7517; --amber-light: #FAEEDA;
+    --text: #2C2C2A; --text-muted: #5F5E5A;
+    --red: #A32D2D; --red-light: #FCEBEB;
+    --blue: #1a56db; --blue-light: #EBF5FF;
+  }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f4fb; color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: var(--green-dark); color: white; padding: 1.5rem 1.5rem; text-align: center; }
+  .header h1 { font-size: 1.4rem; font-weight: 700; }
+  .header p { font-size: 0.85rem; opacity: 0.8; margin-top: 0.3rem; }
+  .quota-bar-wrap { margin-top: 1rem; }
+  .quota-row { display: flex; gap: 0.75rem; }
+  .quota-item { flex: 1; }
+  .quota-label { font-size: 0.72rem; opacity: 0.75; margin-bottom: 0.3rem; }
+  .quota-bar { background: rgba(255,255,255,0.2); border-radius: 99px; height: 8px; overflow: hidden; }
+  .quota-fill { background: #9FE1CB; border-radius: 99px; height: 100%; transition: width 0.6s ease; }
+  .quota-count { font-size: 0.78rem; margin-top: 0.35rem; opacity: 0.85; }
+
+  /* LAYOUT */
+  .container { max-width: 540px; margin: 1.5rem auto; padding: 0 1rem 3rem; }
+  .tabs { display: flex; border-radius: 12px; overflow: hidden; border: 1.5px solid #b0d8c8; margin-bottom: 1.5rem; }
+  .tab { flex: 1; padding: 0.7rem 0.3rem; text-align: center; font-size: 0.78rem; font-weight: 600; cursor: pointer; background: white; color: var(--text-muted); border: none; transition: background 0.2s, color 0.2s; line-height: 1.3; }
+  .tab.active { background: var(--green); color: white; }
+  .card { background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #d8eee6; margin-bottom: 1.25rem; }
+
+  /* FORM FIELDS */
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 0.35rem; }
+  .field label .opt { font-weight: 400; text-transform: none; color: #bbb; font-size: 0.73rem; }
+  .field input, .field select { width: 100%; padding: 0.65rem 1rem; border: 1.5px solid #d0e8dc; border-radius: 10px; font-size: 0.93rem; color: var(--text); background: white; outline: none; transition: border 0.2s, box-shadow 0.2s; }
+  .field input:focus, .field select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+  .field input::placeholder { color: #ccc; }
+
+  /* TICKET OPTIONS */
+  .ticket-options { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.35rem; }
+  .ticket-opt { border: 1.5px solid #d0e8dc; border-radius: 10px; padding: 0.75rem 1rem; cursor: pointer; transition: border 0.2s, background 0.2s; display: flex; justify-content: space-between; align-items: center; }
+  .ticket-opt:hover { border-color: var(--green); background: var(--green-light); }
+  .ticket-opt.selected { border-color: var(--green); background: var(--green-light); }
+  .ticket-opt input[type="radio"] { display: none; }
+  .ticket-name { font-weight: 700; font-size: 0.92rem; color: var(--text); }
+  .ticket-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.1rem; }
+  .ticket-price { font-weight: 800; font-size: 1rem; color: var(--green-dark); white-space: nowrap; margin-left: 1rem; }
+
+  /* BUTTONS */
+  .btn-primary { width: 100%; padding: 0.85rem; background: var(--green); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: background 0.2s, transform 0.1s; }
+  .btn-primary:hover { background: var(--teal); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+  .btn-outline { width: 100%; padding: 0.75rem; background: white; color: var(--green-dark); border: 1.5px solid var(--green); border-radius: 10px; font-size: 0.93rem; font-weight: 600; cursor: pointer; margin-top: 0.65rem; transition: background 0.2s; }
+  .btn-outline:hover { background: var(--green-light); }
+
+  /* ALERTS */
+  .alert { padding: 0.75rem 1rem; border-radius: 10px; font-size: 0.87rem; margin-top: 0.75rem; line-height: 1.5; }
+  .alert-error   { background: #FCEBEB; color: #A32D2D; border: 1px solid #F7C1C1; }
+  .alert-success { background: var(--green-light); color: var(--green-dark); border: 1px solid #9FE1CB; }
+  .alert-warning { background: var(--amber-light); color: #633806; border: 1px solid #FAC775; }
+  .alert-info    { background: var(--blue-light); color: #1a3a6e; border: 1px solid #a4cafe; }
+
+  /* STEP TRACKER */
+  .steps-wrap { display: flex; flex-direction: column; gap: 0; margin-bottom: 1.25rem; }
+  .step-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.65rem 0; position: relative; }
+  .step-item:not(:last-child)::after { content:''; position:absolute; left:15px; top:42px; width:2px; height:calc(100% - 10px); background:#e0e0e0; }
+  .step-circle { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:800; flex-shrink:0; z-index:1; }
+  .step-done   { background:var(--green); color:white; }
+  .step-active { background:var(--amber); color:white; animation: pulse-amber 1.5s infinite; }
+  .step-wait   { background:#e0e0e0; color:#999; }
+  .step-text { padding-top:0.2rem; }
+  .step-label { font-size:0.85rem; font-weight:700; color:var(--text); }
+  .step-sublabel { font-size:0.75rem; color:var(--text-muted); margin-top:0.1rem; }
+  .step-active-label { color:var(--amber); }
+  @keyframes pulse-amber { 0%,100%{box-shadow:0 0 0 0 rgba(186,117,23,0.4)} 50%{box-shadow:0 0 0 8px rgba(186,117,23,0)} }
+
+  /* WARNING BOX */
+  .warning-box { background:#FFF3CD; border:2px solid var(--amber); border-radius:12px; padding:1rem 1.1rem; margin-bottom:1rem; text-align:center; }
+  .warning-box .w-icon { font-size:1.5rem; }
+  .warning-box .w-title { font-size:0.95rem; font-weight:800; color:#633806; margin-top:0.3rem; }
+  .warning-box .w-sub { font-size:0.82rem; color:#7a4a10; margin-top:0.25rem; line-height:1.5; }
+
+  /* BIG WA BUTTON */
+  .wa-big-btn { display:flex; align-items:center; justify-content:center; gap:0.6rem; width:100%; padding:1rem; background:#25D366; color:white; border:none; border-radius:12px; font-size:1.05rem; font-weight:800; cursor:pointer; animation: pulse-green 1.5s infinite; margin-bottom:0.75rem; }
+  .wa-big-btn:hover { background:#1ebe5d; }
+  @keyframes pulse-green { 0%,100%{box-shadow:0 0 0 0 rgba(37,211,102,0.4)} 50%{box-shadow:0 0 0 10px rgba(37,211,102,0)} }
+
+  /* PAYMENT CARD */
+  .payment-card { display: none; background: white; border-radius: 16px; border: 2px solid var(--amber); overflow: hidden; margin-top: 1.25rem; }
+  .payment-header { background: var(--amber); color: white; padding: 1.1rem 1.5rem; text-align: center; }
+  .payment-header h2 { font-size: 1.05rem; font-weight: 700; }
+  .payment-header p { font-size: 0.8rem; opacity: 0.9; margin-top: 0.2rem; }
+  .payment-body { padding: 1.25rem 1.5rem; }
+  .reg-id-box { background: #fff8ee; border: 1.5px solid #FAC775; border-radius: 10px; padding: 0.75rem 1rem; text-align: center; margin-bottom: 1.1rem; }
+  .reg-id-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .reg-id-value { font-family: monospace; font-size: 1.4rem; font-weight: 800; color: var(--amber); letter-spacing: 2px; margin-top: 0.15rem; }
+  .bank-box { background: #f8faf8; border: 1px solid #d8eee6; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+  .bank-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+  .bank-row:last-child { margin-bottom: 0; }
+  .bank-label { font-size: 0.78rem; color: var(--text-muted); }
+  .bank-value { font-weight: 700; font-size: 0.93rem; color: var(--text); }
+  .bank-value.accent { color: var(--green-dark); font-size: 1.05rem; }
+  .nominal-box { background: var(--green-light); border: 1.5px solid #9FE1CB; border-radius: 10px; padding: 0.85rem 1rem; text-align: center; margin-bottom: 1rem; }
+  .nominal-label { font-size: 0.78rem; color: var(--text-muted); }
+  .nominal-value { font-size: 1.5rem; font-weight: 800; color: var(--green-dark); margin-top: 0.1rem; }
+  .nominal-note  { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+  .payment-steps { font-size: 0.83rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 1rem; }
+  .payment-steps ol { padding-left: 1.2rem; }
+  .payment-steps li { margin-bottom: 0.2rem; }
+
+  /* WA & ACTION BUTTONS */
+  .action-row { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .wa-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.1rem; background: #25D366; color: white; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; border: none; }
+  .wa-btn:hover { background: #1ebe5d; }
+  .print-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1rem; background: white; color: var(--green-dark); border: 1.5px solid var(--green); border-radius: 10px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+  .print-btn:hover { background: var(--green-light); }
+  .reset-btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.65rem 1rem; background: white; color: var(--text-muted); border: 1.5px solid #ddd; border-radius: 10px; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+  .reset-btn:hover { background: #f5f5f5; }
+
+  /* QR RESULT (shown after payment verified) */
+  .inline-result { display: none; background: white; border-radius: 16px; border: 2px solid var(--green); overflow: hidden; margin-top: 1.25rem; }
+  .ir-header { background: var(--green-dark); color: white; padding: 1.1rem 1.5rem; text-align: center; }
+  .ir-header h2 { font-size: 1.05rem; font-weight: 700; }
+  .ir-header p { font-size: 0.8rem; opacity: 0.8; margin-top: 0.2rem; }
+  .ir-body { padding: 1.25rem; text-align: center; }
+  .pid-badge { display: inline-block; background: var(--green-light); color: var(--green-dark); font-family: monospace; font-size: 1.3rem; font-weight: 800; letter-spacing: 2px; padding: 0.4rem 1.1rem; border-radius: 10px; border: 1.5px solid #9FE1CB; margin-bottom: 1rem; }
+  .ticket-badge { display: inline-block; padding: 0.2rem 0.9rem; border-radius: 99px; font-size: 0.78rem; font-weight: 700; margin-bottom: 1rem; margin-left: 0.4rem; }
+  .badge-platinum  { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .badge-gold   { background: #fff8e1; color: #f57f17; border: 1px solid #ffcc02; }
+  .badge-silver  { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
+  .badge-bronze   { background: #fff8e1; color: #f57f17; border: 1px solid #ffcc02; }
+  .qr-center { display: flex; justify-content: center; margin-bottom: 0.75rem; }
+  .qr-center canvas, .qr-center img { border-radius: 10px; border: 5px solid var(--green-light); }
+  .res-name { font-size: 1rem; font-weight: 700; color: var(--text); }
+  .res-detail { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; margin-bottom: 1rem; }
+
+  /* LOOKUP TAB */
+  .lookup-wrap { background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #d8eee6; }
+  .lookup-wrap h3 { font-size: 1rem; font-weight: 700; color: var(--green-dark); margin-bottom: 0.3rem; }
+  .lookup-wrap > p { font-size: 0.84rem; color: var(--text-muted); margin-bottom: 1.1rem; line-height: 1.6; }
+  .search-row { display: flex; gap: 0.5rem; }
+  .search-row input { flex: 1; padding: 0.65rem 1rem; border: 1.5px solid #d0e8dc; border-radius: 10px; font-size: 0.91rem; outline: none; transition: border 0.2s; }
+  .search-row input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+  .search-row button { padding: 0.65rem 1rem; background: var(--green); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 0.88rem; cursor: pointer; white-space: nowrap; }
+  .lq-card { display: none; margin-top: 1.1rem; background: white; border: 2px solid var(--green); border-radius: 14px; overflow: hidden; }
+  .lq-header { background: var(--green-dark); color: white; padding: 1rem 1.25rem; text-align: center; }
+  .lq-header .lq-label { font-size: 0.78rem; opacity: 0.75; }
+  .lq-header .lq-name  { font-size: 1.05rem; font-weight: 700; margin-top: 0.1rem; }
+  .lq-body { padding: 1.1rem; text-align: center; }
+  .lq-id  { font-family: monospace; font-size: 1.2rem; font-weight: 800; color: var(--green); letter-spacing: 2px; margin-bottom: 0.75rem; }
+  .lq-sub { font-size: 0.81rem; color: var(--text-muted); margin-top: 0.4rem; margin-bottom: 0.9rem; }
+  /* Pending payment shown in lookup */
+  .pending-box { background: var(--amber-light); border: 1.5px solid #FAC775; border-radius: 12px; padding: 1rem; text-align: left; }
+  .pending-box h4 { color: #633806; font-size: 0.9rem; margin-bottom: 0.5rem; }
+  .pending-box p  { font-size: 0.82rem; color: #633806; line-height: 1.6; }
+
+  /* SCANNER */
+  .pw-gate { background: white; border-radius: 16px; padding: 2rem 1.75rem; border: 1px solid #d8eee6; text-align: center; }
+  .lock-icon { font-size: 2.5rem; margin-bottom: 0.65rem; }
+  .pw-gate h3 { font-size: 1.05rem; font-weight: 700; color: var(--green-dark); margin-bottom: 0.3rem; }
+  .pw-gate p  { font-size: 0.84rem; color: var(--text-muted); margin-bottom: 1.25rem; }
+  .pw-field { display: flex; flex-direction: column; gap: 0.65rem; max-width: 240px; margin: 0 auto; }
+  .pw-field input { width: 100%; padding: 0.7rem 1rem; border: 1.5px solid #d0e8dc; border-radius: 10px; font-size: 1.2rem; text-align: center; letter-spacing: 6px; outline: none; transition: border 0.2s; }
+  .pw-field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(29,158,117,0.12); }
+  .pw-field button { width: 100%; padding: 0.75rem; background: var(--green); color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; }
+  .pw-error    { color: var(--red); font-size: 0.84rem; margin-top: 0.75rem; min-height: 1.2em; }
+  .pw-attempts { font-size: 0.76rem; color: #bbb; margin-top: 0.25rem; }
+  .scanner-content { display: none; }
+  .scanner-wrap { background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid #d8eee6; }
+  .scanner-topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .panitia-badge { font-size: 0.78rem; color: var(--green-dark); background: var(--green-light); padding: 0.2rem 0.7rem; border-radius: 99px; border: 1px solid #9FE1CB; }
+  .logout-btn { font-size: 0.78rem; color: var(--red); background: var(--red-light); border: 1px solid #F7C1C1; border-radius: 99px; padding: 0.2rem 0.7rem; cursor: pointer; font-weight: 600; }
+  #scanner-video { width: 100%; border-radius: 10px; background: #111; aspect-ratio: 4/3; object-fit: cover; }
+  .scan-indicator { display:none; margin-top:0.5rem; padding:0.4rem 0.75rem; background:#e8f5ee; border-radius:8px; font-size:0.76rem; color:var(--text-muted); text-align:center; }
+  .scan-result { margin-top: 1rem; padding: 1rem 1.1rem; border-radius: 10px; border: 1px solid #9FE1CB; background: var(--green-light); display: none; }
+  .scan-name   { font-weight: 700; font-size: 1rem; color: var(--green-dark); }
+  .scan-detail { font-size: 0.83rem; color: var(--text-muted); margin-top: 0.2rem; }
+  .scan-badge  { display: inline-block; padding: 0.2rem 0.7rem; border-radius: 99px; font-size: 0.74rem; font-weight: 700; margin-top: 0.4rem; }
+  .badge-ok      { background: var(--green); color: white; }
+  .badge-already { background: var(--amber-light); color: #633806; border: 1px solid #FAC775; }
+  .badge-error   { background: #FCEBEB; color: #A32D2D; border: 1px solid #F7C1C1; }
+  .manual-row { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+  .manual-row input { flex: 1; padding: 0.6rem 0.9rem; border: 1.5px solid #d0e8dc; border-radius: 10px; font-size: 0.88rem; outline: none; }
+  .manual-row input:focus { border-color: var(--green); }
+  .manual-row button { padding: 0.6rem 0.9rem; background: var(--green); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
+  /* Verify payment section in scanner */
+  .verify-section { margin-top: 1.25rem; border-top: 1px solid #e8f5ee; padding-top: 1.25rem; }
+  .verify-section h4 { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 0.5rem; }
+  .verify-row { display: flex; gap: 0.5rem; }
+  .verify-row input { flex: 1; padding: 0.6rem 0.9rem; border: 1.5px solid #d0e8dc; border-radius: 10px; font-size: 0.88rem; outline: none; }
+  .verify-row input:focus { border-color: var(--green); }
+  .verify-row button { padding: 0.6rem 0.9rem; background: var(--amber); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; white-space: nowrap; font-size: 0.85rem; }
+  .verify-result { margin-top: 0.75rem; padding: 0.85rem 1rem; border-radius: 10px; border: 1px solid #FAC775; background: var(--amber-light); display: none; font-size: 0.85rem; }
+  .verify-result .v-name { font-weight: 700; color: #633806; }
+  .verify-result .v-detail { color: #7a4a10; margin-top: 0.2rem; font-size: 0.8rem; }
+
+  /* CHECKBOX OPTIONS */
+  .checkbox-options { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.35rem; }
+  .checkbox-opt { display: flex; align-items: center; gap: 0.65rem; padding: 0.65rem 1rem; border: 1.5px solid #d0e8dc; border-radius: 10px; cursor: pointer; transition: border 0.2s, background 0.2s; }
+  .checkbox-opt:hover { border-color: var(--green); background: var(--green-light); }
+  .checkbox-opt input[type="radio"] { width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; }
+  .checkbox-opt.selected { border-color: var(--green); background: var(--green-light); }
+  .checkbox-opt label { font-size: 0.93rem; color: var(--text); cursor: pointer; font-weight: 500; }
+
+  .footer { text-align: center; font-size: 0.8rem; color: #333333; padding: 0.7rem 0 0; }
+
+  @media print {
+    body * { visibility: hidden; }
+    .inline-result, .inline-result * { visibility: visible; }
+    .inline-result { position: fixed; top: 0; left: 0; width: 100%; border: none; display: block !important; }
+    .action-row, .reset-btn { display: none !important; }
+    .lq-card, .lq-card * { visibility: visible; }
+    .lq-card { position: fixed; top: 0; left: 0; width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<img src="banner.jpg" alt="Mukjizat dan Kuasa Roh Kudus - KRK Penyembuhan" style="width:100%;display:block;">
+
+<div class="header">
+  <h1>📋 Pendaftaran Peserta</h1>
+  <p id="event-subtitle"></p>
+  <div class="quota-bar-wrap">
+    <div class="quota-row">
+      <div class="quota-item">
+        <div class="quota-label">Platinum <span id="quota-platinum-count">...</span></div>
+        <div class="quota-bar"><div class="quota-fill" id="quota-fill-platinum" style="width:0%"></div></div>
+      </div>
+      <div class="quota-item">
+        <div class="quota-label">Gold <span id="quota-gold-count">...</span></div>
+        <div class="quota-bar"><div class="quota-fill" id="quota-fill-gold" style="width:0%;background:#FFD966"></div></div>
+      </div>
+      <div class="quota-item">
+        <div class="quota-label">Silver <span id="quota-silver-count">...</span></div>
+        <div class="quota-bar"><div class="quota-fill" id="quota-fill-silver" style="width:0%;background:#F4B8D1"></div></div>
+      </div>
+      <div class="quota-item">
+        <div class="quota-label">Bronze <span id="quota-bronze-count">...</span></div>
+        <div class="quota-bar"><div class="quota-fill" id="quota-fill-bronze" style="width:0%;background:#F4B8D1"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('daftar')">📝 Daftar</button>
+    <button class="tab" onclick="showTab('cari')">🔍 Cari QR</button>
+    <button class="tab" onclick="showTab('scan')">📷 Scan</button>
+  </div>
+
+  <!-- ═══ TAB 1: PENDAFTARAN ═══ -->
+  <div id="tab-daftar">
+    <div class="card" id="form-card">
+      <div class="field">
+        <label>Nama Lengkap *</label>
+        <input type="text" id="nama" placeholder="Masukkan nama lengkap" maxlength="100" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Nomor WhatsApp / HP *</label>
+        <input type="tel" id="phone" placeholder="Contoh: 08123456789" maxlength="20" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label>Konfirmasi Nomor WhatsApp *</label>
+        <input type="tel" id="phone2" placeholder="Ulangi nomor WhatsApp Anda" maxlength="20" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Kota Asal *</label>
+        <input type="text" id="kota" placeholder="Contoh: Yogyakarta, Jakarta, Surabaya" maxlength="100">
+      </div>
+      <div class="field">
+        <label>Paroki / Persekutuan Doa <span class="opt">(opsional)</span></label>
+        <input type="text" id="pd" placeholder="Nama persekutuan doa Anda" maxlength="100">
+      </div>
+      <div class="field">
+        <label>Kategori Tiket *</label>
+        <div class="ticket-options">
+          <div class="ticket-opt" id="opt-platinum" onclick="selectTicket('platinum')">
+            <div>
+              <div class="ticket-name">Platinum</div>
+              <div class="ticket-desc" id="desc-platinum">Sisa kuota: ...</div>
+            </div>
+            <div class="ticket-price">IDR 350.000</div>
+          </div>
+          <div class="ticket-opt" id="opt-gold" onclick="selectTicket('gold')">
+            <div>
+              <div class="ticket-name">Gold</div>
+              <div class="ticket-desc" id="desc-gold">Sisa kuota: ...</div>
+            </div>
+            <div class="ticket-price">IDR 250.000</div>
+          </div>
+          <div class="ticket-opt" id="opt-silver" onclick="selectTicket('silver')">
+            <div>
+              <div class="ticket-name">Silver</div>
+              <div class="ticket-desc" id="desc-silver">Sisa kuota: ...</div>
+            </div>
+            <div class="ticket-price">IDR 150.000</div>
+          </div>
+          <div class="ticket-opt" id="opt-bronze" onclick="selectTicket('bronze')">
+            <div>
+              <div class="ticket-name">Bronze</div>
+              <div class="ticket-desc" id="desc-bronze">Sisa kuota: ...</div>
+            </div>
+            <div class="ticket-price">IDR 25.000</div>
+          </div>
+        </div>
+      </div>
+      <!--<div class="field">
+        <label>Apakah Anda akan membawa alat bantu? *</label>
+        <div class="ticket-options">
+          <div class="ticket-opt" id="alat-ranjang" onclick="selectAlat('ranjang')">
+            <div>
+              <div class="ticket-name">Ranjang Pasien</div>
+            </div>
+          </div>
+          <div class="ticket-opt" id="alat-kursi" onclick="selectAlat('kursi')">
+            <div>
+              <div class="ticket-name">Kursi Roda</div>
+            </div>
+          </div>
+          <div class="ticket-opt" id="alat-tidak" onclick="selectAlat('tidak')">
+            <div>
+              <div class="ticket-name">Tidak Ada</div>
+            </div>
+          </div>
+        </div>
+      </div>-->
+      <div id="form-alert"></div>
+      <button class="btn-primary" id="submit-btn" onclick="submitForm()">Daftar Sekarang →</button>
+    </div>
+
+    <!-- PAYMENT INFO — muncul setelah daftar berhasil -->
+    <div class="payment-card" id="payment-card">
+      <div class="payment-header">
+        <h2>⏳ Selesaikan Pembayaran</h2>
+        <p>Pendaftaran Anda berhasil! Silakan transfer sesuai nominal di bawah</p>
+      </div>
+      <div class="payment-body">
+
+        <!-- REG ID BOX -->
+        <div class="reg-id-box">
+          <div class="reg-id-label">Nomor Registrasi Anda</div>
+          <div class="reg-id-value" id="pay-reg-id"></div>
+          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem">Screenshot nomor ini sebagai bukti pendaftaran</div>
+        </div>
+
+        <!-- STEP TRACKER -->
+        <div class="steps-wrap">
+          <div class="step-item">
+            <div class="step-circle step-done">✓</div>
+            <div class="step-text">
+              <div class="step-label">Pendaftaran</div>
+              <div class="step-sublabel">Selesai ✓</div>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-circle step-active">2</div>
+            <div class="step-text">
+              <div class="step-label step-active-label">Transfer Pembayaran</div>
+              <div class="step-sublabel">Segera transfer ke rekening di bawah</div>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-circle step-active">3</div>
+            <div class="step-text">
+              <div class="step-label step-active-label">Kirim Bukti Transfer</div>
+              <div class="step-sublabel">Klik tombol WhatsApp di bawah — WAJIB!</div>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-circle step-wait">4</div>
+            <div class="step-text">
+              <div class="step-label" style="color:#999">Dapat QR Code</div>
+              <div class="step-sublabel">Setelah panitia mengkonfirmasi pembayaran</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- WARNING -->
+        <div class="warning-box">
+          <div class="w-icon">⚠️</div>
+          <div class="w-title">PENDAFTARAN ANDA BELUM SELESAI!</div>
+          <div class="w-sub">QR Code <strong>hanya akan diberikan</strong> setelah bukti transfer dikirim ke panitia dan dikonfirmasi. Jangan tutup halaman ini sebelum mengirim bukti!</div>
+        </div>
+
+        <!-- NOMINAL -->
+        <div class="nominal-box">
+          <div class="nominal-label">Nominal Transfer</div>
+          <div class="nominal-value" id="pay-nominal"></div>
+          <div class="nominal-note" id="pay-tiket"></div>
+        </div>
+
+        <!-- BANK INFO -->
+        <div class="bank-box" id="bank-box-1"></div>
+
+        <!-- BIG WA BUTTON -->
+        <button class="wa-big-btn" onclick="sendPaymentWA()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.118 1.532 5.845L0 24l6.335-1.51A11.942 11.942 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.894a9.877 9.877 0 01-5.031-1.375l-.361-.214-3.741.981.999-3.648-.235-.374A9.859 9.859 0 012.106 12C2.106 6.58 6.58 2.106 12 2.106c5.42 0 9.894 4.474 9.894 9.894 0 5.42-4.474 9.894-9.894 9.894z"/></svg>
+          📲 KIRIM BUKTI TRANSFER KE PANITIA
+        </button>
+        <div style="text-align:center;font-size:0.78rem;color:var(--text-muted);margin-bottom:0.75rem">
+          Klik tombol hijau di atas → WhatsApp terbuka → lampirkan screenshot transfer → kirim
+        </div>
+
+        <button class="reset-btn" onclick="resetForm()" style="width:100%">← Daftar Peserta Lain</button>
+      </div>
+    </div>
+
+    <!-- QR CODE — muncul setelah pembayaran diverifikasi -->
+    <div class="inline-result" id="inline-result">
+      <div class="ir-header">
+        <h2>✅ Pembayaran Terverifikasi!</h2>
+        <p>Screenshot atau cetak QR Code ini untuk absensi hari H</p>
+      </div>
+      <div class="ir-body">
+        <div>
+          <span class="pid-badge" id="res-id"></span>
+          <span class="ticket-badge" id="res-badge"></span>
+        </div>
+        <div class="qr-center" id="qrcode-main"></div>
+        <div class="res-name" id="res-nama"></div>
+        <div class="res-detail" id="res-detail"></div>
+        <div class="action-row">
+          <button class="wa-btn" onclick="shareWA('reg')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.118 1.532 5.845L0 24l6.335-1.51A11.942 11.942 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.894a9.877 9.877 0 01-5.031-1.375l-.361-.214-3.741.981.999-3.648-.235-.374A9.859 9.859 0 012.106 12C2.106 6.58 6.58 2.106 12 2.106c5.42 0 9.894 4.474 9.894 9.894 0 5.42-4.474 9.894-9.894 9.894z"/></svg>
+            Kirim via WhatsApp
+          </button>
+          <button class="print-btn" onclick="window.print()">🖨️ Cetak</button>
+          <button class="reset-btn" onclick="resetForm()">← Daftar Lagi</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 2: CARI QR ═══ -->
+  <div id="tab-cari" style="display:none">
+    <div class="lookup-wrap">
+      <h3>🔍 Cari Status & QR Code</h3>
+      <p>Masukkan nomor WhatsApp atau ID registrasi untuk melihat status pembayaran dan QR Code Anda.</p>
+      <div class="search-row">
+        <input type="text" id="lookup-input" placeholder="No. WhatsApp tanpa 0, atau nomor registrasi, contoh 4110001"
+          maxlength="50" onkeydown="if(event.key==='Enter') doLookup()">
+        <button onclick="doLookup()">Cari</button>
+      </div>
+      <div id="lookup-alert"></div>
+
+      <div class="lq-card" id="lq-card" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 3: SCAN (password protected) ═══ -->
+  <div id="tab-scan" style="display:none">
+    <div class="pw-gate" id="pw-gate">
+      <div class="lock-icon">🔒</div>
+      <h3>Area Panitia</h3>
+      <p>Tab ini hanya untuk operator pendaftaran.<br>Masukkan kata sandi untuk melanjutkan.</p>
+      <div class="pw-field">
+        <input type="password" id="pw-input" placeholder="••••••" maxlength="10"
+          onkeydown="if(event.key==='Enter') checkPassword()">
+        <button onclick="checkPassword()">Masuk</button>
+      </div>
+      <div class="pw-error" id="pw-error"></div>
+      <div class="pw-attempts" id="pw-attempts"></div>
+    </div>
+
+    <div class="scanner-content" id="scanner-content">
+      <div class="scanner-wrap">
+        <div class="scanner-topbar">
+          <span class="panitia-badge">🔓 Mode Panitia Aktif</span>
+          <button class="logout-btn" onclick="lockScanner()">🔒 Kunci</button>
+        </div>
+        <p style="font-size:0.85rem;color:var(--text-muted);text-align:center;margin-bottom:1rem">
+          Arahkan kamera ke QR Code peserta untuk mencatat kehadiran
+        </p>
+        <video id="scanner-video" autoplay playsinline muted></video>
+        <div class="scan-indicator" id="scan-indicator">📡 Scanner aktif — arahkan QR ke kamera</div>
+        <div style="display:flex;gap:0.5rem;margin-top:1rem">
+          <button class="btn-primary" id="start-scan-btn" onclick="startScanner()" style="margin-top:0">📷 Aktifkan Kamera</button>
+          <button class="btn-primary" id="stop-scan-btn" onclick="stopScanner()" style="display:none;margin-top:0;background:#dc2626">⏹ Stop</button>
+        </div>
+        <div class="scan-result" id="scan-result"></div>
+
+        <!-- Manual check -->
+        <div class="verify-section">
+          <h4>Input ID Manual</h4>
+          <div class="manual-row">
+            <input type="text" id="manual-id" placeholder="Contoh: 4110001">
+            <button onclick="manualCheck()">Cek Hadir</button>
+          </div>
+        </div>
+
+        <!-- Verify payment -->
+        <div class="verify-section">
+          <h4>✅ Verifikasi Pembayaran</h4>
+          <div class="verify-row">
+            <input type="text" id="verify-id" placeholder="ID Registrasi, contoh 4110002">
+            <button onclick="verifyPayment()">Konfirmasi</button>
+          </div>
+          <div class="verify-result" id="verify-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <img src="favicon.png" alt="logo" style="width:45px;height:45px;object-fit:contain;margin-bottom:6px;opacity:1;"><br>
+    • Sistem Registrasi BPPKK Kevikepan DIY 2026 •
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  ⚙️  KONFIGURASI — edit di sini saja
+// ============================================================
+const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbxn1EMrC16yiqu8d15hjV5i1N3DI6J5m3kgfoupe_9yyecDKCOF3McTpkV6e-R4aRX_/exec';
+const PANITIA_WA  = '6282342968231'; /== format 628xxxxxxxx ==/
+const MAX_QUOTA   = 1011;
+const SCANNER_PW  = '778899';
+const MAX_TRIES   = 5;
+
+const QUOTA = { platinum: 96, gold: 122, silver: 143, bronze: 650 };
+
+const TIKET = {
+  platinum: { label: 'Platinum', nominal: 350000, display: 'IDR 350.000' },
+  gold:     { label: 'Gold',     nominal: 250000, display: 'IDR 250.000' },
+  silver:   { label: 'Silver',   nominal: 150000, display: 'IDR 150.000' },
+  bronze:   { label: 'Bronze',   nominal: 25000,  display: 'IDR 25.000'  }
+};
+
+const EVENT_TITLE = 'Malam Pujian bersama Rm Eko Wahyu';
+const EVENT_DATE  = '4 November 2026';
+const EVENT_CITY  = 'Yogyakarta';
+
+const BANK_NAME   = 'Mandiri';
+const BANK_NOREK  = '1370 0286 3384 6';
+const BANK_ATAS   = 'Cornelia Christiani';
+// ============================================================
+
+function renderConfig() {
+  // Event subtitle in header
+  const sub = document.getElementById('event-subtitle');
+  if (sub) sub.textContent = EVENT_TITLE + ' • ' + EVENT_DATE + ' • ' + EVENT_CITY;
+
+  // Bank box HTML (reusable)
+  const bankHTML =
+    '<div class="bank-row"><span class="bank-label">Bank</span><span class="bank-value">' + BANK_NAME + '</span></div>' +
+    '<div class="bank-row"><span class="bank-label">No. Rekening</span><span class="bank-value accent">' + BANK_NOREK + '</span></div>' +
+    '<div class="bank-row"><span class="bank-label">Atas Nama</span><span class="bank-value">' + BANK_ATAS + '</span></div>';
+
+  const b1 = document.getElementById('bank-box-1');
+  const b2 = document.getElementById('bank-box-2');
+  if (b1) b1.innerHTML = bankHTML;
+  if (b2) b2.innerHTML = bankHTML;
+}
+
+// ── state ──
+let registeredData  = null;
+let lookupData      = null;
+let lastVerifiedData = null;
+let selectedTicket  = null;
+let codeReader      = null;
+let pwTries         = 0;
+
+// ============================================================
+//  QUOTA
+// ============================================================
+
+async function loadQuota() {
+  try {
+    const res  = await fetch(SCRIPT_URL + '?action=quota');
+    const data = await res.json();
+
+    const counts = {
+      platinum:  data.platinum  !== undefined ? data.platinum  : 0,
+      gold:   data.gold   !== undefined ? data.gold   : 0,
+      silver:  data.silver  !== undefined ? data.silver  : 0,
+      bronze:  data.bronze  !== undefined ? data.bronze  : 0
+    };
+
+    ['platinum','gold','silver','bronze'].forEach(t => {
+      const cnt  = counts[t];
+      const max  = QUOTA[t];
+      const sisa = max - cnt;
+      const pct  = Math.min((cnt / max) * 100, 100).toFixed(1);
+
+      const bar   = document.getElementById('quota-fill-' + t);
+      const label = document.getElementById('quota-' + t + '-count');
+      const desc  = document.getElementById('desc-' + t);
+      const opt   = document.getElementById('opt-' + t);
+
+      if (bar)   bar.style.width = pct + '%';
+      if (label) label.textContent = cnt + '/' + max;
+
+      if (cnt >= max) {
+        if (opt)  { opt.style.opacity = '0.4'; opt.style.pointerEvents = 'none'; opt.style.cursor = 'not-allowed'; }
+        if (desc) desc.textContent = 'Kuota habis';
+      } else {
+        if (opt)  { opt.style.opacity = '1'; opt.style.pointerEvents = 'auto'; opt.style.cursor = 'pointer'; }
+        if (desc) desc.textContent = 'Sisa: ' + sisa;
+      }
+    });
+
+  } catch(e) {
+    ['platinum','gold','silver','bronze'].forEach(t => {
+      const label = document.getElementById('quota-' + t + '-count');
+      const desc  = document.getElementById('desc-' + t);
+      const opt   = document.getElementById('opt-' + t);
+      if (label) label.textContent = '-';
+      if (desc)  desc.textContent  = 'Tidak dapat memuat';
+      if (opt)   { opt.style.opacity = '1'; opt.style.pointerEvents = 'auto'; opt.style.cursor = 'pointer'; }
+    });
+  }
+}
+
+// ============================================================
+//  TICKET SELECTION
+// ============================================================
+function selectTicket(type) {
+  selectedTicket = type;
+  ['platinum','gold','silver','bronze'].forEach(t => {
+    const opt = document.getElementById('opt-' + t);
+    if (opt) opt.classList.toggle('selected', t === type);
+  });
+}
+
+/*function selectAlat(type) {
+  selectedAlat = type;
+  ['ranjang','kursi','tidak'].forEach(t => {
+    const opt = document.getElementById('alat-' + t);
+    const inp = document.getElementById('r-' + t);
+    if (opt) opt.classList.toggle('selected', t === type);
+    if (inp) inp.checked = (t === type);
+  });
+}*/
+
+// ============================================================
+//  SUBMIT FORM
+// ============================================================
+async function submitForm() {
+  const nama  = document.getElementById('nama').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const kota  = document.getElementById('kota').value.trim();
+  const pd    = document.getElementById('pd').value.trim();
+
+  if (!nama)           { showAlert('form-alert', 'Nama lengkap wajib diisi.', 'error'); return; }
+  if (!phone)          { showAlert('form-alert', 'Nomor WhatsApp / HP wajib diisi.', 'error'); return; }
+  if (!/^[0-9+\-\s]{8,20}$/.test(phone)) {
+    showAlert('form-alert', 'Format nomor tidak valid. Gunakan angka saja.', 'error'); return;
+  }
+  const phone2 = document.getElementById('phone2').value.trim();
+  if (!phone2) { showAlert('form-alert', 'Konfirmasi nomor WhatsApp wajib diisi.', 'error'); return; }
+  if (phone.replace(/\D/g,'') !== phone2.replace(/\D/g,'')) {
+    showAlert('form-alert', '⚠️ Nomor WhatsApp tidak sama. Mohon periksa kembali.', 'error');
+    document.getElementById('phone2').style.borderColor = '#A32D2D';
+    return;
+  }
+  document.getElementById('phone2').style.borderColor = '';
+  if (!kota)           { showAlert('form-alert', 'Kota asal wajib diisi.', 'error'); return; }
+  if (!selectedTicket) { showAlert('form-alert', 'Pilih kategori tiket terlebih dahulu.', 'error'); return; }
+  /*if (!selectedAlat)   { showAlert('form-alert', 'Pilih pilihan alat bantu terlebih dahulu.', 'error'); return; }*/
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = '⏳ Mendaftarkan...';
+  clearAlert('form-alert');
+
+  try {
+    const url  = SCRIPT_URL + '?' + new URLSearchParams({ action: 'register', nama, phone, kota, pd, tiket: selectedTicket, /*alat: selectedAlat*/ });
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      registeredData = data;
+      showPaymentCard(data);
+      loadQuota();
+    } else if (data.status === 'full') {
+      showAlert('form-alert', '⚠️ Kuota pendaftaran sudah penuh.', 'warning');
+      btn.disabled = false; btn.textContent = 'Daftar Sekarang →';
+    } else if (data.status === 'duplicate') {
+      showAlert('form-alert',
+        '⚠️ ' + (data.message || 'Nomor HP ini sudah terdaftar.') + '<br>Gunakan tab <em>🔍 Cari QR</em> untuk melihat status pendaftaran Anda.', 'warning');
+      btn.disabled = false; btn.textContent = 'Daftar Sekarang →';
+    } else {
+      showAlert('form-alert', '❌ ' + (data.message || 'Terjadi kesalahan, coba lagi.'), 'error');
+      btn.disabled = false; btn.textContent = 'Daftar Sekarang →';
+    }
+  } catch(e) {
+    showAlert('form-alert', '❌ Gagal terhubung ke server. Periksa koneksi internet Anda.', 'error');
+    btn.disabled = false; btn.textContent = 'Daftar Sekarang →';
+  }
+}
+
+// ============================================================
+//  SHOW PAYMENT CARD
+// ============================================================
+function showPaymentCard(data) {
+  const t = TIKET[(data.tiket || '').toString().trim().toLowerCase()] || TIKET.platinum;
+  document.getElementById('pay-reg-id').textContent  = data.id;
+  document.getElementById('pay-nominal').textContent = t.display;
+  document.getElementById('pay-tiket').textContent   = 'Kategori: ' + t.label;
+  document.getElementById('payment-card').style.display = 'block';
+  setTimeout(() => document.getElementById('payment-card').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+}
+
+// ============================================================
+//  SEND PAYMENT WA TO PANITIA
+// ============================================================
+function sendPaymentWA() {
+  if (!registeredData) return;
+  const d = registeredData;
+  const t = TIKET[d.tiket] || TIKET.platinum;
+  const msg =
+    '🙏 *Bukti Pembayaran Worship Night 2026*\n\n' +
+    '🪪 *ID Registrasi:* `' + d.id + '`\n' +
+    '👤 *Nama:* ' + d.nama + '\n' +
+    '📱 *No HP:* ' + d.phone + '\n' +
+    '🏙️ *Kota:* ' + d.kota + '\n' +
+    (d.pd ? '🙏 *PD:* ' + d.pd + '\n' : '') +
+    '🎫 *Kategori:* ' + t.label + '\n' +
+    '💰 *Nominal:* ' + t.display + '\n\n' +
+    '_[Lampirkan screenshot bukti transfer di sini]_';
+  window.open('https://wa.me/' + PANITIA_WA + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ============================================================
+//  SEND REMINDER WA (from lookup)
+// ============================================================
+function sendReminderWA() {
+  if (!lookupData) return;
+  const d = lookupData;
+  const t = TIKET[d.tiket] || TIKET.platinum;
+  const msg =
+    '🙏 *Konfirmasi Pembayaran Worship Night 2026*\n\n' +
+    'Saya ingin menanyakan status pembayaran saya:\n\n' +
+    '🪪 *ID Registrasi:* `' + d.id + '`\n' +
+    '👤 *Nama:* ' + d.nama + '\n' +
+    '📱 *No HP:* ' + d.phone + '\n' +
+    '🎫 *Kategori:* ' + t.label + ' (' + t.display + ')\n\n' +
+    'Mohon bantuannya untuk mengkonfirmasi pembayaran saya. Terima kasih 🙏';
+  window.open('https://wa.me/' + PANITIA_WA + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ============================================================
+//  SHOW QR (after verified)
+// ============================================================
+function renderQR(elId, data) {
+  document.getElementById(elId).innerHTML = '';
+  new QRCode(document.getElementById(elId), {
+    text: data.id + '|' + data.nama + '|' + data.phone + '|' + (data.tiket || 'platinum'),
+    width: 210, height: 210,
+    colorDark: '#085041', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
+function ticketBadgeHTML(tiket) {
+  const cls = { platinum: 'badge-platinum', gold: 'badge-gold', silver: 'badge-silver', bronze: 'badge-bronze' };
+  const lbl = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', bronze: 'Bronze' };
+  return '<span class="ticket-badge ' + (cls[tiket]||'badge-platinum') + '">' + (lbl[tiket]||tiket) + '</span>';
+}
+
+// ============================================================
+//  WA SHARE (QR)
+// ============================================================
+function shareWA(mode) {
+  const d = mode === 'reg' ? registeredData : lookupData;
+  if (!d) return;
+  const tiketClean = (d.tiket || '').toString().trim().toLowerCase();
+  const t = TIKET[tiketClean] || TIKET.platinum;
+  const id = String(d.id);
+
+  const phoneStr = String(d.phone).replace(/\D/g, '');
+  let wa;
+  if (phoneStr.startsWith('62'))     wa = phoneStr;
+  else if (phoneStr.startsWith('0')) wa = '62' + phoneStr.slice(1);
+  else                               wa = '62' + phoneStr;
+
+  const msg =
+    '✅ *QR Code Worship Night 2026*\n\n' +
+    '🪪 *ID Peserta:* `' + id + '`\n' +
+    '👤 *Nama:* ' + d.nama + '\n' +
+    '🎫 *Kategori:* ' + t.label + '\n' +
+    (d.pd ? '🙏 *PD:* ' + d.pd + '\n' : '') +
+    '📱 *No HP:* ' + d.phone + '\n\n' +
+    '📌 Buka link berikut untuk menampilkan QR Code Anda:\n' +
+    'https://techn0newbie.github.io/registration.vikep.diy/?id=' + id + '\n\n' +
+    'Tunjukkan QR Code tersebut saat registrasi hari H. GBU! 🙏';
+
+  window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ============================================================
+//  RESET FORM
+// ============================================================
+function resetForm() {
+  ['nama','phone','phone2','kota','pd'].forEach(id => document.getElementById(id).value = '');
+  ['platinum','silver','gold','bronze'].forEach(t => document.getElementById('opt-' + t).classList.remove('selected'));
+  /*['ranjang','kursi','tidak'].forEach(t => {
+    const opt = document.getElementById('alat-' + t);
+    const inp = document.getElementById('r-' + t);
+    if (opt) opt.classList.remove('selected');
+    if (inp) inp.checked = false;
+  });*/
+  selectedTicket = null;
+  /*selectedAlat   = null;*/
+  registeredData = null;
+  document.getElementById('payment-card').style.display  = 'none';
+  document.getElementById('inline-result').style.display = 'none';
+  document.getElementById('qrcode-main').innerHTML = '';
+  clearAlert('form-alert');
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('submit-btn').textContent = 'Daftar Sekarang →';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+//  LOOKUP / CARI QR
+// ============================================================
+async function doLookup() {
+  const q = document.getElementById('lookup-input').value.trim();
+  if (!q) { showAlert('lookup-alert', 'Masukkan nomor HP atau ID peserta.', 'error'); return; }
+
+  clearAlert('lookup-alert');
+  document.getElementById('lq-card').style.display = 'none';
+
+  try {
+    const url  = SCRIPT_URL + '?' + new URLSearchParams({ action: 'lookup', query: q });
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.status === 'found') {
+      const results = data.results;
+      // Store first lunas result as lookupData for shareWA
+      lookupData = results.find(r => String(r.payment).trim().toLowerCase() === 'lunas') || results[0];
+
+      // Build cards for all results
+      const container = document.getElementById('lq-card');
+      container.innerHTML = '';
+
+      results.forEach((r, idx) => {
+        const isLunas = String(r.payment).trim().toLowerCase() === 'lunas';
+        const t = TIKET[r.tiket] || TIKET.platinum;
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background:white;border:2px solid ' + (isLunas ? 'var(--green)' : 'var(--amber)') + ';border-radius:14px;overflow:hidden;margin-bottom:1rem;';
+
+        const headerBg = isLunas ? 'var(--green-dark)' : 'var(--amber)';
+        card.innerHTML =
+          '<div style="background:' + headerBg + ';color:white;padding:0.85rem 1.25rem;text-align:center">' +
+            '<div style="font-size:0.78rem;opacity:0.8">QR Code Peserta</div>' +
+            '<div style="font-size:1rem;font-weight:700;margin-top:0.1rem">' + r.nama + '</div>' +
+          '</div>' +
+          '<div style="padding:1.1rem;text-align:center">' +
+            '<div style="font-family:monospace;font-size:1.2rem;font-weight:800;color:' + (isLunas ? 'var(--green)' : 'var(--amber)') + ';letter-spacing:2px;margin-bottom:0.5rem">' + r.id + '</div>' +
+            ticketBadgeHTML(r.tiket || 'platinum') +
+            '<div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.4rem;margin-bottom:0.9rem">' +
+              r.phone + (r.kota ? '  •  ' + r.kota : '') + (r.pd ? '  •  ' + r.pd : '') +
+            '</div>' +
+            (isLunas
+              ? '<div id="qrcode-lookup-' + idx + '" style="display:flex;justify-content:center;margin-bottom:0.75rem"></div>' +
+                '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">' +
+                  '<button class="wa-btn" data-idx="' + idx + '" onclick="shareWAItem(this.dataset.idx)">📤 Kirim WA</button>' +
+                  '<button class="print-btn" onclick="window.print()">🖨️ Cetak</button>' +
+                '</div>'
+              : '<div style="background:var(--amber-light);border:1.5px solid #FAC775;border-radius:10px;padding:0.85rem;text-align:left">' +
+                  '<p style="font-size:0.83rem;color:#633806;font-weight:700">⏳ Menunggu Verifikasi Pembayaran</p>' +
+                  '<p style="font-size:0.8rem;color:#7a4a10;margin-top:0.3rem">Pastikan sudah kirim bukti transfer ke panitia.</p>' +
+                '</div>' +
+                '<div class="bank-box" id="bank-box-2" style="margin-top:0.75rem">' +
+                  '<div class="bank-row"><span class="bank-label">Bank</span><span class="bank-value">' + BANK_NAME + '</span></div>' +
+                  '<div class="bank-row"><span class="bank-label">No. Rekening</span><span class="bank-value accent">' + BANK_NOREK + '</span></div>' +
+                  '<div class="bank-row"><span class="bank-label">Atas Nama</span><span class="bank-value">' + BANK_ATAS + '</span></div>' +
+                '</div>' +
+                '<button class="wa-btn" data-idx="' + idx + '" onclick="sendReminderWAItem(this.dataset.idx)" style="margin-top:0.5rem;width:100%;justify-content:center">📲 Kirim Pengingat ke Panitia</button>') +
+          '</div>';
+
+        container.appendChild(card);
+
+        if (isLunas) {
+          setTimeout(() => {
+            const qrEl = document.getElementById('qrcode-lookup-' + idx);
+            if (qrEl) {
+              new QRCode(qrEl, {
+                text: r.id + '|' + r.nama + '|' + r.phone + '|' + (r.tiket || 'platinum'),
+                width: 200, height: 200,
+                colorDark: '#085041', colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+              });
+            }
+          }, 100);
+        }
+      });
+
+      // Store all results for WA sharing
+      window._lookupResults = results;
+
+      container.style.display = 'block';
+      setTimeout(() => container.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+    } else {
+      showAlert('lookup-alert', '❌ Data tidak ditemukan. Pastikan nomor HP atau ID sudah benar.', 'error');
+    }
+  } catch(e) {
+    showAlert('lookup-alert', '❌ Gagal terhubung. Periksa koneksi internet Anda.', 'error');
+  }
+}
+
+function shareWAItem(idx) {
+  const results = window._lookupResults;
+  if (!results || !results[parseInt(idx)]) return;
+  const r = results[parseInt(idx)];
+  const tiketClean = (r.tiket || '').toString().trim().toLowerCase();
+  const t = TIKET[tiketClean] || TIKET.platinum;
+  const id = String(r.id);
+  const phoneStr = String(r.phone).replace(/\D/g, '');
+  let wa;
+  if (phoneStr.startsWith('62'))     wa = phoneStr;
+  else if (phoneStr.startsWith('0')) wa = '62' + phoneStr.slice(1);
+  else                               wa = '62' + phoneStr;
+  const msg =
+    '✅ *QR Code Worship Night 2026*\n\n' +
+    '🪪 *ID Peserta:* `' + id + '`\n' +
+    '👤 *Nama:* ' + r.nama + '\n' +
+    '🎫 *Kategori:* ' + t.label + '\n' +
+    (r.pd && r.pd !== '-' ? '🙏 *PD:* ' + r.pd + '\n' : '') +
+    '📱 *No HP:* ' + r.phone + '\n\n' +
+    '📌 Buka link berikut untuk menampilkan QR Code Anda:\n' +
+    'https://techn0newbie.github.io/registration.vikep.diy/?id=' + id + '\n\n' +
+    'Tunjukkan QR Code tersebut saat registrasi hari H. GBU! 🙏';
+  window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function sendReminderWAItem(idx) {
+  const results = window._lookupResults;
+  if (!results || !results[idx]) return;
+  lookupData = results[idx];
+  sendReminderWA();
+}
+
+// ============================================================
+//  VERIFY PAYMENT (panitia)
+// ============================================================
+async function verifyPayment() {
+  const id  = document.getElementById('verify-id').value.trim();
+  if (!id) return;
+  const div = document.getElementById('verify-result');
+  div.style.display = 'block';
+  div.innerHTML = '<p style="color:var(--text-muted)">⏳ Memproses...</p>';
+
+  try {
+    const url  = SCRIPT_URL + '?' + new URLSearchParams({ action: 'verify', id });
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      div.style.background  = 'var(--green-light)';
+      div.style.borderColor = '#9FE1CB';
+      lastVerifiedData = data;
+      div.innerHTML =
+        '<div class="v-name">✅ ' + data.nama + ' — Pembayaran Dikonfirmasi</div>' +
+        '<div class="v-detail">' + data.id + '  •  ' + (TIKET[data.tiket]||TIKET.platinum).display + '  •  ' + data.verified_time + '</div>' +
+        '<div class="v-detail" style="margin-top:0.4rem">Link WA siap dikirim ke peserta ↓</div>' +
+        '<button class="wa-btn" id="send-verified-wa-btn" onclick="sendVerifiedWA();" style="margin-top:0.6rem;width:100%;justify-content:center">' +
+        '📲 Kirim Notifikasi ke Peserta</button>';
+    } else if (data.status === 'already') {
+      div.style.background  = 'var(--amber-light)';
+      div.style.borderColor = '#FAC775';
+      div.innerHTML = '<div class="v-name">⚠️ ' + data.nama + ' — Sudah terverifikasi sebelumnya</div><div class="v-detail">' + data.verified_time + '</div>';
+    } else {
+      div.style.background  = '#FCEBEB';
+      div.style.borderColor = '#F7C1C1';
+      div.innerHTML = '<div class="v-name">❌ ' + (data.message || 'ID tidak ditemukan') + '</div>';
+    }
+  } catch(e) {
+    div.innerHTML = '<div class="v-name">❌ Gagal terhubung</div>';
+  }
+}
+
+function sendVerifiedWA() {
+  const data = lastVerifiedData;
+  if (!data) {
+    alert('Data peserta tidak ditemukan. Silakan verifikasi ulang.');
+    return;
+  }
+  const t = TIKET[(data.tiket || '').toString().trim().toLowerCase()] || TIKET.platinum;
+
+  // phone may come as number from Apps Script — convert to string first
+  const phoneStr = String(data.phone).replace(/\D/g, '');
+  // If starts with 62 already, keep it; if starts with 0, replace with 62; otherwise prepend 62
+  let wa;
+  if (phoneStr.startsWith('62'))      wa = phoneStr;
+  else if (phoneStr.startsWith('0'))  wa = '62' + phoneStr.slice(1);
+  else                                wa = '62' + phoneStr;
+
+  const id = String(data.id);
+
+  const msg =
+    '✅ *Pembayaran Anda Telah Dikonfirmasi!*\n\n' +
+    'Terima kasih, ' + data.nama + '!\n\n' +
+    '🪪 *ID Peserta:* `' + id + '`\n' +
+    '🎫 *Kategori:* ' + t.label + '\n' +
+    '💰 *Nominal:* ' + t.display + '\n\n' +
+    '📌 Silakan buka link berikut untuk menampilkan QR Code Anda:\n' +
+    'https://techn0newbie.github.io/registration.vikep.diy/?id=' + id + '\n\n' +
+    'Tunjukkan QR Code tersebut saat registrasi pada hari H.\n' +
+    'Sampai jumpa, GBU! 🙏';
+
+  window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+// ============================================================
+//  PASSWORD GATE
+// ============================================================
+function checkPassword() {
+  if (pwTries >= MAX_TRIES) return;
+  const val = document.getElementById('pw-input').value;
+  document.getElementById('pw-input').value = '';
+  if (val === SCANNER_PW) {
+    pwTries = 0;
+    document.getElementById('pw-gate').style.display         = 'none';
+    document.getElementById('scanner-content').style.display = 'block';
+    document.getElementById('pw-error').textContent    = '';
+    document.getElementById('pw-attempts').textContent = '';
+  } else {
+    pwTries++;
+    const left = MAX_TRIES - pwTries;
+    document.getElementById('pw-error').textContent =
+      left > 0 ? '❌ Kata sandi salah.' : '🚫 Terlalu banyak percobaan.';
+    document.getElementById('pw-attempts').textContent =
+      left > 0 ? left + ' percobaan tersisa' : '';
+    if (left <= 0) document.getElementById('pw-input').disabled = true;
+  }
+}
+
+function lockScanner() {
+  stopScanner();
+  document.getElementById('pw-gate').style.display         = 'block';
+  document.getElementById('scanner-content').style.display = 'none';
+  document.getElementById('pw-input').disabled = false;
+  document.getElementById('pw-error').textContent    = '';
+  document.getElementById('pw-attempts').textContent = '';
+  pwTries = 0;
+}
+
+// ============================================================
+//  TABS
+// ============================================================
+function showTab(tab) {
+  ['daftar','cari','scan'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = (t === tab) ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((el, i) => {
+    el.classList.toggle('active', ['daftar','cari','scan'][i] === tab);
+  });
+  if (tab !== 'scan') stopScanner();
+}
+
+// Handle ?id= URL param (direct QR link from panitia WA)
+function checkURLParam() {
+  const params = new URLSearchParams(window.location.search);
+  const id     = params.get('id');
+  if (id) {
+    // Wait for page to fully render before switching tab and looking up
+    setTimeout(() => {
+      showTab('cari');
+      document.getElementById('lookup-input').value = id;
+      doLookup();
+    }, 500);
+  }
+}
+
+// ============================================================
+//  SCANNER — ZXing
+// ============================================================
+async function startScanner() {
+  try {
+    codeReader = new ZXing.BrowserMultiFormatReader();
+    const videoEl = document.getElementById('scanner-video');
+    document.getElementById('start-scan-btn').style.display = 'none';
+    document.getElementById('stop-scan-btn').style.display  = 'block';
+    document.getElementById('scan-indicator').style.display = 'block';
+
+    let deviceId = undefined;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const cameras = devices.filter(d => d.kind === 'videoinput');
+      if (cameras.length > 1) {
+        const rear = cameras.find(d => /back|rear|environment/i.test(d.label));
+        deviceId = rear ? rear.deviceId : cameras[cameras.length - 1].deviceId;
+      }
+    } catch(e) {}
+
+    let lastCode = '', lastTime = 0;
+    await codeReader.decodeFromVideoDevice(deviceId, videoEl, (result, err) => {
+      if (result) {
+        const text = result.getText();
+        const now  = Date.now();
+        if (text !== lastCode || now - lastTime > 5000) {
+          lastCode = text; lastTime = now;
+          processQR(text);
+        }
+      }
+    });
+  } catch(e) {
+    alert('Tidak dapat mengakses kamera.\nPastikan izin kamera sudah diaktifkan.\n\nDetail: ' + e.message);
+  }
+}
+
+function stopScanner() {
+  if (codeReader) { codeReader.reset(); codeReader = null; }
+  const video = document.getElementById('scanner-video');
+  if (video) video.srcObject = null;
+  const s = document.getElementById('start-scan-btn');
+  const x = document.getElementById('stop-scan-btn');
+  const i = document.getElementById('scan-indicator');
+  if (s) s.style.display = 'block';
+  if (x) x.style.display = 'none';
+  if (i) i.style.display = 'none';
+}
+
+async function processQR(text) {
+  const div = document.getElementById('scan-result');
+  div.style.display = 'block';
+  div.style.background = 'var(--green-light)';
+  div.style.borderColor = '#9FE1CB';
+  div.innerHTML = '<p style="color:var(--green-dark);font-size:0.9rem;font-weight:600">📷 QR terdeteksi — ⏳ Memproses...</p>';
+  div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  await checkAttendance(text);
+}
+
+async function manualCheck() {
+  const id = document.getElementById('manual-id').value.trim();
+  if (!id) return;
+  await checkAttendance(id);
+}
+
+async function checkAttendance(qrText) {
+  const div = document.getElementById('scan-result');
+  div.style.display = 'block';
+  try {
+    const url  = SCRIPT_URL + '?' + new URLSearchParams({ action: 'checkin', qr: qrText });
+    const res  = await fetch(url);
+    const data = await res.json();
+    const t    = TIKET[(data.tiket || '').toString().trim().toLowerCase()] || { label: '' };
+
+    if (data.status === 'success') {
+      div.style.background = 'var(--green-light)'; div.style.borderColor = '#9FE1CB';
+      div.innerHTML =
+        '<div class="scan-name">✅ ' + data.nama + '</div>' +
+        '<div class="scan-detail">' + data.id + (t.label ? '  •  ' + t.label : '') + (data.pd ? '  •  ' + data.pd : '') + '</div>' +
+        '<span class="scan-badge badge-ok">Hadir Tercatat  •  ' + data.checkin_time + '</span>';
+    } else if (data.status === 'already') {
+      div.style.background = 'var(--amber-light)'; div.style.borderColor = '#FAC775';
+      div.innerHTML =
+        '<div class="scan-name">⚠️ ' + data.nama + '</div>' +
+        '<div class="scan-detail">' + data.id + '  •  Sudah scan: ' + data.checkin_time + '</div>' +
+        '<span class="scan-badge badge-already">Sudah Tercatat Sebelumnya</span>';
+    } else if (data.status === 'unpaid') {
+      div.style.background = '#FCEBEB'; div.style.borderColor = '#F7C1C1';
+      div.innerHTML =
+        '<div class="scan-name">🚫 ' + data.nama + '</div>' +
+        '<div class="scan-detail">Pembayaran belum dikonfirmasi</div>' +
+        '<span class="scan-badge badge-error">Belum Lunas</span>';
+    } else {
+      div.style.background = '#FCEBEB'; div.style.borderColor = '#F7C1C1';
+      div.innerHTML =
+        '<div class="scan-name">❌ QR / ID Tidak Valid</div>' +
+        '<div class="scan-detail">' + (data.message || 'Peserta tidak ditemukan') + '</div>' +
+        '<span class="scan-badge badge-error">Gagal</span>';
+    }
+    div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch(e) {
+    div.style.background = '#FCEBEB'; div.style.borderColor = '#F7C1C1';
+    div.innerHTML = '<div class="scan-name">❌ Gagal Terhubung</div><div class="scan-detail">' + e.message + '</div><span class="scan-badge badge-error">Error</span>';
+  }
+}
+
+// ============================================================
+//  HELPERS
+// ============================================================
+function showAlert(id, html, type) {
+  document.getElementById(id).innerHTML = '<div class="alert alert-' + type + '">' + html + '</div>';
+}
+function clearAlert(id) { document.getElementById(id).innerHTML = ''; }
+
+// Delegated click handler for dynamically created buttons
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.id === 'send-verified-wa-btn') {
+    sendVerifiedWA();
+  }
+});
+
+renderConfig();
+loadQuota();
+checkURLParam();
+</script>
+</body>
+</html>
