@@ -524,7 +524,7 @@
 //  ⚙️  KONFIGURASI — edit di sini saja
 // ============================================================
 const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbxn1EMrC16yiqu8d15hjV5i1N3DI6J5m3kgfoupe_9yyecDKCOF3McTpkV6e-R4aRX_/exec';
-const PANITIA_WA  = '6282342968231'; /== format 628xxxxxxxx ==/
+const PANITIA_WA  = '6282342968231'; // format: 628xxxxxxxxxx (tanpa tanda + dan tanpa 0 di depan)
 const MAX_QUOTA   = 1011;
 const SCANNER_PW  = '778899';
 const MAX_TRIES   = 5;
@@ -538,6 +538,8 @@ const TIKET = {
   bronze:   { label: 'Bronze',   nominal: 25000,  display: 'IDR 25.000'  }
 };
 
+const EVENT_NAME  = 'BPPKK DIY 2026';
+const BASE_URL    = 'https://techn0newbie.github.io/bppkk.diy.registration.apps/'; // link halaman QR, harus diakhiri /
 const EVENT_TITLE = 'Sistem Pendaftaran BPPKK DIY';
 const EVENT_DATE  = '18 November 2026';
 const EVENT_CITY  = 'Yogyakarta';
@@ -720,7 +722,7 @@ function sendPaymentWA() {
   const d = registeredData;
   const t = TIKET[d.tiket] || TIKET.platinum;
   const msg =
-    '🙏 *Bukti Pembayaran Worship Night 2026*\n\n' +
+    '🙏 *Bukti Pembayaran ' + EVENT_NAME + '*\n\n' +
     '🪪 *ID Registrasi:* `' + d.id + '`\n' +
     '👤 *Nama:* ' + d.nama + '\n' +
     '📱 *No HP:* ' + d.phone + '\n' +
@@ -740,7 +742,7 @@ function sendReminderWA() {
   const d = lookupData;
   const t = TIKET[d.tiket] || TIKET.platinum;
   const msg =
-    '🙏 *Konfirmasi Pembayaran Worship Night 2026*\n\n' +
+    '🙏 *Konfirmasi Pembayaran ' + EVENT_NAME + '*\n\n' +
     'Mohon bantuan untuk mengkonfirmasi pembayaran saya:\n\n' +
     '🪪 *ID Registrasi:* `' + d.id + '`\n' +
     '👤 *Nama:* ' + d.nama + '\n' +
@@ -786,14 +788,14 @@ function shareWA(mode) {
   else                               wa = '62' + phoneStr;
 
   const msg =
-    '✅ *QR Code Worship Night 2026*\n\n' +
+    '✅ *QR Code ' + EVENT_NAME + '*\n\n' +
     '🪪 *ID Peserta:* `' + id + '`\n' +
     '👤 *Nama:* ' + d.nama + '\n' +
     '🎫 *Kategori:* ' + t.label + '\n' +
     (d.pd ? '🙏 *PD:* ' + d.pd + '\n' : '') +
     '📱 *No HP:* ' + d.phone + '\n\n' +
     '📌 Buka link berikut untuk menampilkan QR Code Anda:\n' +
-    'https://techn0newbie.github.io/registration.vikep.diy/?id=' + id + '\n\n' +
+    BASE_URL + '?id=' + id + '\n\n' +
     'Tunjukkan QR Code tersebut saat registrasi hari H. GBU! 🙏';
 
   window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
@@ -927,14 +929,14 @@ function shareWAItem(idx) {
   else if (phoneStr.startsWith('0')) wa = '62' + phoneStr.slice(1);
   else                               wa = '62' + phoneStr;
   const msg =
-    '✅ *QR Code Worship Night 2026*\n\n' +
+    '✅ *QR Code ' + EVENT_NAME + '*\n\n' +
     '🪪 *ID Peserta:* `' + id + '`\n' +
     '👤 *Nama:* ' + r.nama + '\n' +
     '🎫 *Kategori:* ' + t.label + '\n' +
     (r.pd && r.pd !== '-' ? '🙏 *PD:* ' + r.pd + '\n' : '') +
     '📱 *No HP:* ' + r.phone + '\n\n' +
     '📌 Buka link berikut untuk menampilkan QR Code Anda:\n' +
-    'https://techn0newbie.github.io/registration.vikep.diy/?id=' + id + '\n\n' +
+    BASE_URL + '?id=' + id + '\n\n' +
     'Tunjukkan QR Code tersebut saat registrasi hari H. GBU! 🙏';
   window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
 }
@@ -1010,7 +1012,7 @@ function sendVerifiedWA() {
     '🎫 *Kategori:* ' + t.label + '\n' +
     '💰 *Nominal:* ' + t.display + '\n\n' +
     '📌 Silakan buka link berikut untuk menampilkan QR Code Anda:\n' +
-    'https://techn0newbie.github.io/registration.vikep.diy/?id=' + id + '\n\n' +
+    BASE_URL + '?id=' + id + '\n\n' +
     'Tunjukkan QR Code tersebut saat registrasi pada hari H.\n' +
     'Sampai jumpa, GBU! 🙏';
 
