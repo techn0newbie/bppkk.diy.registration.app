@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistem Registrasi Vikep DIY</title>
+<title>BPPKK DIY Registration App</title>
 <link rel="icon" href="favicon.png" type="image/png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
@@ -226,7 +226,7 @@
 </head>
 <body>
 
-<img src="banner.jpg" alt="Mukjizat dan Kuasa Roh Kudus - KRK Penyembuhan" style="width:100%;display:block;">
+<img src="banner.jpg" alt="BPPKK DIY Registration App" style="width:100%;display:block;">
 
 <div class="header">
   <h1>📋 Pendaftaran Peserta</h1>
@@ -538,15 +538,13 @@ const TIKET = {
   bronze:   { label: 'Bronze',   nominal: 25000,  display: 'IDR 25.000'  }
 };
 
-const EVENT_TITLE = 'Malam Pujian bersama Rm Eko Wahyu';
-const EVENT_DATE  = '4 November 2026';
+const EVENT_TITLE = 'Sistem Pendaftaran BPPKK DIY';
+const EVENT_DATE  = '18 November 2026';
 const EVENT_CITY  = 'Yogyakarta';
 
 const BANK_NAME   = 'Mandiri';
 const BANK_NOREK  = '1370 0286 3384 6';
 const BANK_ATAS   = 'Cornelia Christiani';
-
-const FREE_EVENT  = false; // true = gratis, skip semua alur pembayaran
 // ============================================================
 
 function renderConfig() {
@@ -564,21 +562,6 @@ function renderConfig() {
   const b2 = document.getElementById('bank-box-2');
   if (b1) b1.innerHTML = bankHTML;
   if (b2) b2.innerHTML = bankHTML;
-}
-
-function applyFreeEventMode() {
-  if (!FREE_EVENT) return;
-  // Hide ticket prices in the registration form
-  document.querySelectorAll('.ticket-price').forEach(el => el.style.display = 'none');
-  // Hide the "Verifikasi Pembayaran" section in scanner tab
-  document.querySelectorAll('.verify-section').forEach(el => {
-    if (el.querySelector('h4') && el.querySelector('h4').textContent.includes('Verifikasi')) {
-      el.style.display = 'none';
-    }
-  });
-  // Update lookup tab description
-  const lp = document.querySelector('.lookup-wrap > p');
-  if (lp) lp.textContent = 'Masukkan nomor WhatsApp atau ID registrasi untuk melihat QR Code Anda.';
 }
 
 // ── state ──
@@ -698,11 +681,7 @@ async function submitForm() {
 
     if (data.status === 'success') {
       registeredData = data;
-      if (FREE_EVENT || data.freeEvent) {
-        showFreeQR(data);
-      } else {
-        showPaymentCard(data);
-      }
+      showPaymentCard(data);
       loadQuota();
     } else if (data.status === 'full') {
       showAlert('form-alert', '⚠️ Kuota pendaftaran sudah penuh.', 'warning');
@@ -734,32 +713,6 @@ function showPaymentCard(data) {
 }
 
 // ============================================================
-//  SHOW QR DIRECTLY (free event — no payment needed)
-// ============================================================
-function showFreeQR(data) {
-  const el = document.getElementById('inline-result');
-  document.getElementById('res-id').textContent    = data.id;
-  document.getElementById('res-nama').textContent  = data.nama;
-  document.getElementById('res-detail').textContent =
-    data.phone + (data.kota ? '  •  ' + data.kota : '') + (data.pd ? '  •  ' + data.pd : '');
-  document.getElementById('res-badge').innerHTML   = ticketBadgeHTML((data.tiket || '').toLowerCase());
-
-  const qrEl = document.getElementById('qrcode-main');
-  qrEl.innerHTML = '';
-  new QRCode(qrEl, {
-    text: data.id + '|' + data.nama + '|' + data.phone + '|' + (data.tiket || 'bronze'),
-    width: 210, height: 210,
-    colorDark: '#085041', colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.H
-  });
-
-  el.querySelector('.ir-header h2').textContent = '✅ Pendaftaran Berhasil!';
-  el.querySelector('.ir-header p').textContent  = 'Screenshot atau cetak QR Code ini untuk absensi hari H';
-  el.style.display = 'block';
-  setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-}
-
-// ============================================================
 //  SEND PAYMENT WA TO PANITIA
 // ============================================================
 function sendPaymentWA() {
@@ -788,12 +741,12 @@ function sendReminderWA() {
   const t = TIKET[d.tiket] || TIKET.platinum;
   const msg =
     '🙏 *Konfirmasi Pembayaran Worship Night 2026*\n\n' +
-    'Saya ingin menanyakan status pembayaran saya:\n\n' +
+    'Mohon bantuan untuk mengkonfirmasi pembayaran saya:\n\n' +
     '🪪 *ID Registrasi:* `' + d.id + '`\n' +
     '👤 *Nama:* ' + d.nama + '\n' +
     '📱 *No HP:* ' + d.phone + '\n' +
     '🎫 *Kategori:* ' + t.label + ' (' + t.display + ')\n\n' +
-    'Mohon bantuannya untuk mengkonfirmasi pembayaran saya. Terima kasih 🙏';
+    'Terima kasih 🙏';
   window.open('https://wa.me/' + PANITIA_WA + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
@@ -913,7 +866,7 @@ async function doLookup() {
             '<div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.4rem;margin-bottom:0.9rem">' +
               r.phone + (r.kota ? '  •  ' + r.kota : '') + (r.pd ? '  •  ' + r.pd : '') +
             '</div>' +
-            (isLunas || FREE_EVENT
+            (isLunas
               ? '<div id="qrcode-lookup-' + idx + '" style="display:flex;justify-content:center;margin-bottom:0.75rem"></div>' +
                 '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">' +
                   '<button class="wa-btn" data-idx="' + idx + '" onclick="shareWAItem(this.dataset.idx)">📤 Kirim WA</button>' +
@@ -933,7 +886,7 @@ async function doLookup() {
 
         container.appendChild(card);
 
-        if (isLunas || FREE_EVENT) {
+        if (isLunas) {
           setTimeout(() => {
             const qrEl = document.getElementById('qrcode-lookup-' + idx);
             if (qrEl) {
@@ -1247,7 +1200,6 @@ document.addEventListener('click', function(e) {
 });
 
 renderConfig();
-applyFreeEventMode();
 loadQuota();
 checkURLParam();
 </script>
