@@ -42,3 +42,18 @@ To use for a free event, just change these two lines:
 
 index.html line ~549: const FREE_EVENT = false; → true
 Code.gs line ~14: const FREE_EVENT = false; → true
+========================================================
+When FREE_EVENT = false (paid event — current default)
+You need to make sure these are correctly filled:
+
+BANK_NAME, BANK_NOREK, BANK_ATAS — bank transfer details
+PANITIA_WA — panitia WhatsApp number for receiving payment proof
+QUOTA and QUOTA_PER_TIKET — seat limits per category
+TIKET — ticket names, nominals, and display prices
+
+When FREE_EVENT = true (free event)
+These bank/payment fields are still in the code but won’t be shown to users, so they don’t matter. What you need to check:
+
+QUOTA and QUOTA_PER_TIKET — still enforced even for free events
+PANITIA_WA — still used if you keep the WA share button
+The same change must be made in both index.html AND Code.gs — if one says true and the other says false, registrations will break (frontend skips payment but backend still marks “Belum Bayar”)
