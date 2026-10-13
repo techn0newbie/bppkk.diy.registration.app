@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistem Registrasi Vikep DIY</title>
+<title>BPPKK DIY Registration App</title>
 <link rel="icon" href="favicon.png" type="image/png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
@@ -139,6 +139,7 @@
   .badge-gold   { background: #fff8e1; color: #f57f17; border: 1px solid #ffcc02; }
   .badge-silver  { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
   .badge-bronze   { background: #fff8e1; color: #f57f17; border: 1px solid #ffcc02; }
+  .badge-free     { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
   .qr-center { display: flex; justify-content: center; margin-bottom: 0.75rem; }
   .qr-center canvas, .qr-center img { border-radius: 10px; border: 5px solid var(--green-light); }
   .res-name { font-size: 1rem; font-weight: 700; color: var(--text); }
@@ -226,12 +227,13 @@
 </head>
 <body>
 
-<img src="banner.jpg" alt="Mukjizat dan Kuasa Roh Kudus - KRK Penyembuhan" style="width:100%;display:block;">
+<img src="banner.jpg" alt="BPPKK DIY Registration App Banner" style="width:100%;display:block;">
 
 <div class="header">
   <h1>📋 Pendaftaran Peserta</h1>
   <p id="event-subtitle"></p>
-  <div class="quota-bar-wrap">
+  <!-- Disembunyikan sampai mode acara (gratis / berbayar) diterima dari server -->
+  <div class="quota-bar-wrap" id="quota-bar-wrap" style="display:none">
     <div class="quota-row">
       <div class="quota-item">
         <div class="quota-label">Platinum <span id="quota-platinum-count">...</span></div>
@@ -248,6 +250,11 @@
       <div class="quota-item">
         <div class="quota-label">Bronze <span id="quota-bronze-count">...</span></div>
         <div class="quota-bar"><div class="quota-fill" id="quota-fill-bronze" style="width:0%;background:#F4B8D1"></div></div>
+      </div>
+      <!-- Hanya tampil saat FREE_EVENT = true -->
+      <div class="quota-item" id="quota-item-free" style="display:none">
+        <div class="quota-label">Free ticket <span id="quota-free-count">...</span></div>
+        <div class="quota-bar"><div class="quota-fill" id="quota-fill-free" style="width:0%"></div></div>
       </div>
     </div>
   </div>
@@ -285,7 +292,8 @@
       </div>
       <div class="field">
         <label>Kategori Tiket *</label>
-        <div class="ticket-options">
+        <div class="ticket-desc" id="ticket-loading">Memuat kategori tiket...</div>
+        <div class="ticket-options" id="ticket-options" style="display:none">
           <div class="ticket-opt" id="opt-platinum" onclick="selectTicket('platinum')">
             <div>
               <div class="ticket-name">Platinum</div>
@@ -313,6 +321,13 @@
               <div class="ticket-desc" id="desc-bronze">Sisa kuota: ...</div>
             </div>
             <div class="ticket-price">IDR 25.000</div>
+          </div>
+          <!-- Hanya tampil saat FREE_EVENT = true -->
+          <div class="ticket-opt" id="opt-free" onclick="selectTicket('free')" style="display:none">
+            <div>
+              <div class="ticket-name">Free ticket</div>
+              <div class="ticket-desc" id="desc-free">Sisa kuota: ...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -529,13 +544,14 @@ const MAX_QUOTA   = 1011;
 const SCANNER_PW  = '778899';
 const MAX_TRIES   = 5;
 
-const QUOTA = { platinum: 96, gold: 122, silver: 143, bronze: 650 };
+const QUOTA = { platinum: 96, gold: 122, silver: 143, bronze: 650, free: MAX_QUOTA };
 
 const TIKET = {
   platinum: { label: 'Platinum', nominal: 350000, display: 'IDR 350.000' },
   gold:     { label: 'Gold',     nominal: 250000, display: 'IDR 250.000' },
   silver:   { label: 'Silver',   nominal: 150000, display: 'IDR 150.000' },
-  bronze:   { label: 'Bronze',   nominal: 25000,  display: 'IDR 25.000'  }
+  bronze:   { label: 'Bronze',   nominal: 25000,  display: 'IDR 25.000'  },
+  free:     { label: 'Free ticket', nominal: 0,    display: 'Gratis'      }
 };
 
 const EVENT_TITLE = 'Malam Pujian bersama Rm Eko Wahyu';
@@ -546,7 +562,13 @@ const BANK_NAME   = 'Mandiri';
 const BANK_NOREK  = '1370 0286 3384 6';
 const BANK_ATAS   = 'Cornelia Christiani';
 
-const FREE_EVENT  = false; // true = gratis, skip semua alur pembayaran
+// Mode acara gratis / berbayar TIDAK diatur di sini. Atur hanya di Code.gs (const FREE_EVENT);
+// halaman ini membacanya otomatis dari server saat dibuka. Nilai di bawah hanya penampung sementara.
+let FREE_EVENT    = false;
+
+// Alamat halaman ini di GitHub Pages (dipakai untuk link QR di pesan WhatsApp), harus diakhiri tanda /
+// Repo: https://github.com/techn0newbie/bppkk.diy.registration.app
+const BASE_URL    = 'https://techn0newbie.github.io/bppkk.diy.registration.app/';
 // ============================================================
 
 function renderConfig() {
@@ -566,19 +588,39 @@ function renderConfig() {
   if (b2) b2.innerHTML = bankHTML;
 }
 
+const LOOKUP_TEXT_PAID = 'Masukkan nomor WhatsApp atau ID registrasi untuk melihat status pembayaran dan QR Code Anda.';
+const LOOKUP_TEXT_FREE = 'Masukkan nomor WhatsApp atau ID registrasi untuk melihat QR Code Anda.';
+
+// Menyesuaikan tampilan dengan mode acara. Dipanggil setiap kali FREE_EVENT dibaca dari server,
+// jadi berlaku dua arah (gratis -> berbayar maupun sebaliknya).
 function applyFreeEventMode() {
-  if (!FREE_EVENT) return;
-  // Hide ticket prices in the registration form
-  document.querySelectorAll('.ticket-price').forEach(el => el.style.display = 'none');
-  // Hide the "Verifikasi Pembayaran" section in scanner tab
+  const free = FREE_EVENT;
+  // Harga tiket hanya tampil saat acara berbayar
+  document.querySelectorAll('.ticket-price').forEach(el => el.style.display = free ? 'none' : '');
+  // 4 kategori berbayar (pilihan + bar kuota) hanya tampil saat acara berbayar
+  PAID_TICKETS.forEach(t => {
+    const opt  = document.getElementById('opt-' + t);
+    if (opt) opt.style.display = free ? 'none' : '';
+    const fill = document.getElementById('quota-fill-' + t);
+    const item = fill && fill.closest('.quota-item');
+    if (item) item.style.display = free ? 'none' : '';
+  });
+  // "Free ticket" hanya tampil saat acara gratis dan terpilih otomatis
+  const freeOpt = document.getElementById('opt-free');
+  if (freeOpt) freeOpt.style.display = free ? 'flex' : 'none';
+  const freeBar = document.getElementById('quota-item-free');
+  if (freeBar) freeBar.style.display = free ? 'block' : 'none';
+  if (free) selectTicket('free');
+  else if (selectedTicket === 'free') selectTicket(null);
+  // Bagian "Verifikasi Pembayaran" di tab scan disembunyikan saat acara gratis
   document.querySelectorAll('.verify-section').forEach(el => {
     if (el.querySelector('h4') && el.querySelector('h4').textContent.includes('Verifikasi')) {
-      el.style.display = 'none';
+      el.style.display = free ? 'none' : '';
     }
   });
-  // Update lookup tab description
+  // Deskripsi tab cari
   const lp = document.querySelector('.lookup-wrap > p');
-  if (lp) lp.textContent = 'Masukkan nomor WhatsApp atau ID registrasi untuk melihat QR Code Anda.';
+  if (lp) lp.textContent = free ? LOOKUP_TEXT_FREE : LOOKUP_TEXT_PAID;
 }
 
 // ── state ──
@@ -589,6 +631,10 @@ let selectedTicket  = null;
 let codeReader      = null;
 let pwTries         = 0;
 
+// Daftar kategori: acara berbayar memakai 4 kategori, acara gratis hanya 'free'
+const PAID_TICKETS = ['platinum','gold','silver','bronze'];
+function activeTickets() { return FREE_EVENT ? ['free'] : PAID_TICKETS; }
+
 // ============================================================
 //  QUOTA
 // ============================================================
@@ -598,14 +644,20 @@ async function loadQuota() {
     const res  = await fetch(SCRIPT_URL + '?action=quota');
     const data = await res.json();
 
+    // Mode acara (gratis / berbayar) ditentukan di Code.gs dan dibaca dari sini
+    if (typeof data.freeEvent === 'boolean') FREE_EVENT = data.freeEvent;
+    applyFreeEventMode();
+
     const counts = {
       platinum:  data.platinum  !== undefined ? data.platinum  : 0,
       gold:   data.gold   !== undefined ? data.gold   : 0,
       silver:  data.silver  !== undefined ? data.silver  : 0,
-      bronze:  data.bronze  !== undefined ? data.bronze  : 0
+      bronze:  data.bronze  !== undefined ? data.bronze  : 0,
+      // Acara gratis: kuota dihitung dari total pendaftar (sama dengan yang dicek server)
+      free:    data.total   !== undefined ? data.total   : 0
     };
 
-    ['platinum','gold','silver','bronze'].forEach(t => {
+    activeTickets().forEach(t => {
       const cnt  = counts[t];
       const max  = QUOTA[t];
       const sisa = max - cnt;
@@ -629,7 +681,7 @@ async function loadQuota() {
     });
 
   } catch(e) {
-    ['platinum','gold','silver','bronze'].forEach(t => {
+    activeTickets().forEach(t => {
       const label = document.getElementById('quota-' + t + '-count');
       const desc  = document.getElementById('desc-' + t);
       const opt   = document.getElementById('opt-' + t);
@@ -637,6 +689,14 @@ async function loadQuota() {
       if (desc)  desc.textContent  = 'Tidak dapat memuat';
       if (opt)   { opt.style.opacity = '1'; opt.style.pointerEvents = 'auto'; opt.style.cursor = 'pointer'; }
     });
+  } finally {
+    // Tampilkan bagian yang disembunyikan selama menunggu server (berhasil maupun gagal memuat)
+    const qw = document.getElementById('quota-bar-wrap');
+    if (qw) qw.style.display = '';
+    const tl = document.getElementById('ticket-loading');
+    if (tl) tl.style.display = 'none';
+    const to = document.getElementById('ticket-options');
+    if (to) to.style.display = '';
   }
 }
 
@@ -645,7 +705,7 @@ async function loadQuota() {
 // ============================================================
 function selectTicket(type) {
   selectedTicket = type;
-  ['platinum','gold','silver','bronze'].forEach(t => {
+  ['platinum','gold','silver','bronze','free'].forEach(t => {
     const opt = document.getElementById('opt-' + t);
     if (opt) opt.classList.toggle('selected', t === type);
   });
@@ -665,6 +725,7 @@ function selectTicket(type) {
 //  SUBMIT FORM
 // ============================================================
 async function submitForm() {
+  await configReady; // pastikan mode acara dari server sudah diterima
   const nama  = document.getElementById('nama').value.trim();
   const phone = document.getElementById('phone').value.trim();
   const kota  = document.getElementById('kota').value.trim();
@@ -698,7 +759,7 @@ async function submitForm() {
 
     if (data.status === 'success') {
       registeredData = data;
-      if (FREE_EVENT || data.freeEvent) {
+      if (data.freeEvent === true) {
         showFreeQR(data);
       } else {
         showPaymentCard(data);
@@ -811,8 +872,8 @@ function renderQR(elId, data) {
 }
 
 function ticketBadgeHTML(tiket) {
-  const cls = { platinum: 'badge-platinum', gold: 'badge-gold', silver: 'badge-silver', bronze: 'badge-bronze' };
-  const lbl = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', bronze: 'Bronze' };
+  const cls = { platinum: 'badge-platinum', gold: 'badge-gold', silver: 'badge-silver', bronze: 'badge-bronze', free: 'badge-free' };
+  const lbl = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', bronze: 'Bronze', free: 'Free ticket' };
   return '<span class="ticket-badge ' + (cls[tiket]||'badge-platinum') + '">' + (lbl[tiket]||tiket) + '</span>';
 }
 
@@ -840,7 +901,7 @@ function shareWA(mode) {
     (d.pd ? '🙏 *PD:* ' + d.pd + '\n' : '') +
     '📱 *No HP:* ' + d.phone + '\n\n' +
     '📌 Buka link berikut untuk menampilkan QR Code Anda:\n' +
-    'https://techn0newbie.github.io/registration.vikep.diy/?id=' + id + '\n\n' +
+    BASE_URL + '?id=' + id + '\n\n' +
     'Tunjukkan QR Code tersebut saat registrasi hari H. GBU! 🙏';
 
   window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
@@ -851,7 +912,7 @@ function shareWA(mode) {
 // ============================================================
 function resetForm() {
   ['nama','phone','phone2','kota','pd'].forEach(id => document.getElementById(id).value = '');
-  ['platinum','silver','gold','bronze'].forEach(t => document.getElementById('opt-' + t).classList.remove('selected'));
+  ['platinum','silver','gold','bronze','free'].forEach(t => document.getElementById('opt-' + t).classList.remove('selected'));
   /*['ranjang','kursi','tidak'].forEach(t => {
     const opt = document.getElementById('alat-' + t);
     const inp = document.getElementById('r-' + t);
@@ -859,6 +920,7 @@ function resetForm() {
     if (inp) inp.checked = false;
   });*/
   selectedTicket = null;
+  if (FREE_EVENT) selectTicket('free'); // acara gratis: kategori terpilih otomatis lagi
   /*selectedAlat   = null;*/
   registeredData = null;
   document.getElementById('payment-card').style.display  = 'none';
@@ -874,6 +936,7 @@ function resetForm() {
 //  LOOKUP / CARI QR
 // ============================================================
 async function doLookup() {
+  await configReady; // pastikan mode acara dari server sudah diterima
   const q = document.getElementById('lookup-input').value.trim();
   if (!q) { showAlert('lookup-alert', 'Masukkan nomor HP atau ID peserta.', 'error'); return; }
 
@@ -981,7 +1044,7 @@ function shareWAItem(idx) {
     (r.pd && r.pd !== '-' ? '🙏 *PD:* ' + r.pd + '\n' : '') +
     '📱 *No HP:* ' + r.phone + '\n\n' +
     '📌 Buka link berikut untuk menampilkan QR Code Anda:\n' +
-    'https://techn0newbie.github.io/registration.vikep.diy/?id=' + id + '\n\n' +
+    BASE_URL + '?id=' + id + '\n\n' +
     'Tunjukkan QR Code tersebut saat registrasi hari H. GBU! 🙏';
   window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
 }
@@ -1057,7 +1120,7 @@ function sendVerifiedWA() {
     '🎫 *Kategori:* ' + t.label + '\n' +
     '💰 *Nominal:* ' + t.display + '\n\n' +
     '📌 Silakan buka link berikut untuk menampilkan QR Code Anda:\n' +
-    'https://techn0newbie.github.io/registration.vikep.diy/?id=' + id + '\n\n' +
+    BASE_URL + '?id=' + id + '\n\n' +
     'Tunjukkan QR Code tersebut saat registrasi pada hari H.\n' +
     'Sampai jumpa, GBU! 🙏';
 
@@ -1247,8 +1310,8 @@ document.addEventListener('click', function(e) {
 });
 
 renderConfig();
-applyFreeEventMode();
-loadQuota();
+// Mode acara (gratis / berbayar) dibaca dari server lewat loadQuota(); pendaftaran dan pencarian menunggu configReady
+const configReady = loadQuota();
 checkURLParam();
 </script>
 </body>
