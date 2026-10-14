@@ -464,7 +464,7 @@
       <h3>🔍 Cari Status & QR Code</h3>
       <p>Masukkan nomor WhatsApp atau ID registrasi untuk melihat status pembayaran dan QR Code Anda.</p>
       <div class="search-row">
-        <input type="text" id="lookup-input" placeholder="No. WhatsApp tanpa 0, atau nomor registrasi, contoh 4110001"
+        <input type="text" id="lookup-input" placeholder="No. WhatsApp tanpa 0, atau nomor registrasi"
           maxlength="50" onkeydown="if(event.key==='Enter') doLookup()">
         <button onclick="doLookup()">Cari</button>
       </div>
@@ -510,7 +510,7 @@
         <div class="verify-section">
           <h4>Input ID Manual</h4>
           <div class="manual-row">
-            <input type="text" id="manual-id" placeholder="Contoh: 4110001">
+            <input type="text" id="manual-id" placeholder="Nomor registrasi peserta">
             <button onclick="manualCheck()">Cek Hadir</button>
           </div>
         </div>
@@ -519,7 +519,7 @@
         <div class="verify-section">
           <h4>✅ Verifikasi Pembayaran</h4>
           <div class="verify-row">
-            <input type="text" id="verify-id" placeholder="ID Registrasi, contoh 4110002">
+            <input type="text" id="verify-id" placeholder="ID Registrasi peserta">
             <button onclick="verifyPayment()">Konfirmasi</button>
           </div>
           <div class="verify-result" id="verify-result"></div>
@@ -623,6 +623,16 @@ function applyFreeEventMode() {
   if (lp) lp.textContent = free ? LOOKUP_TEXT_FREE : LOOKUP_TEXT_PAID;
 }
 
+// Mengisi contoh nomor registrasi di kolom isian: awalan dari Code.gs + 0001 (atau 0002)
+function applyIdPrefix(prefix) {
+  const contoh1 = prefix + '0001';
+  const contoh2 = prefix + '0002';
+  const set = (id, text) => { const el = document.getElementById(id); if (el) el.placeholder = text; };
+  set('lookup-input', 'No. WhatsApp tanpa 0, atau nomor registrasi, contoh ' + contoh1);
+  set('manual-id',    'Contoh: ' + contoh1);
+  set('verify-id',    'ID Registrasi, contoh ' + contoh2);
+}
+
 // ── state ──
 let registeredData  = null;
 let lookupData      = null;
@@ -647,6 +657,9 @@ async function loadQuota() {
     // Mode acara (gratis / berbayar) ditentukan di Code.gs dan dibaca dari sini
     if (typeof data.freeEvent === 'boolean') FREE_EVENT = data.freeEvent;
     applyFreeEventMode();
+
+    // Awalan nomor registrasi ditentukan di Code.gs (ID_PREFIX); contoh di kolom isian dibuat dari sini
+    if (data.idPrefix) applyIdPrefix(String(data.idPrefix));
 
     const counts = {
       platinum:  data.platinum  !== undefined ? data.platinum  : 0,
