@@ -140,6 +140,7 @@
   .badge-silver  { background: #fce4ec; color: #880e4f; border: 1px solid #f48fb1; }
   .badge-bronze   { background: #fff8e1; color: #f57f17; border: 1px solid #ffcc02; }
   .badge-free     { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+  .badge-other    { background: #eceff1; color: #37474f; border: 1px solid #b0bec5; }
   .qr-center { display: flex; justify-content: center; margin-bottom: 0.75rem; }
   .qr-center canvas, .qr-center img { border-radius: 10px; border: 5px solid var(--green-light); }
   .res-name { font-size: 1rem; font-weight: 700; color: var(--text); }
@@ -234,29 +235,7 @@
   <p id="event-subtitle"></p>
   <!-- Disembunyikan sampai mode acara (gratis / berbayar) diterima dari server -->
   <div class="quota-bar-wrap" id="quota-bar-wrap" style="display:none">
-    <div class="quota-row">
-      <div class="quota-item">
-        <div class="quota-label">Platinum <span id="quota-platinum-count">...</span></div>
-        <div class="quota-bar"><div class="quota-fill" id="quota-fill-platinum" style="width:0%"></div></div>
-      </div>
-      <div class="quota-item">
-        <div class="quota-label">Gold <span id="quota-gold-count">...</span></div>
-        <div class="quota-bar"><div class="quota-fill" id="quota-fill-gold" style="width:0%;background:#FFD966"></div></div>
-      </div>
-      <div class="quota-item">
-        <div class="quota-label">Silver <span id="quota-silver-count">...</span></div>
-        <div class="quota-bar"><div class="quota-fill" id="quota-fill-silver" style="width:0%;background:#F4B8D1"></div></div>
-      </div>
-      <div class="quota-item">
-        <div class="quota-label">Bronze <span id="quota-bronze-count">...</span></div>
-        <div class="quota-bar"><div class="quota-fill" id="quota-fill-bronze" style="width:0%;background:#F4B8D1"></div></div>
-      </div>
-      <!-- Hanya tampil saat FREE_EVENT = true -->
-      <div class="quota-item" id="quota-item-free" style="display:none">
-        <div class="quota-label">Free ticket <span id="quota-free-count">...</span></div>
-        <div class="quota-bar"><div class="quota-fill" id="quota-fill-free" style="width:0%"></div></div>
-      </div>
-    </div>
+    <div class="quota-row" id="quota-row"></div>
   </div>
 </div>
 
@@ -293,43 +272,7 @@
       <div class="field">
         <label>Kategori Tiket *</label>
         <div class="ticket-desc" id="ticket-loading">Memuat kategori tiket...</div>
-        <div class="ticket-options" id="ticket-options" style="display:none">
-          <div class="ticket-opt" id="opt-platinum" onclick="selectTicket('platinum')">
-            <div>
-              <div class="ticket-name">Platinum</div>
-              <div class="ticket-desc" id="desc-platinum">Sisa kuota: ...</div>
-            </div>
-            <div class="ticket-price">IDR 350.000</div>
-          </div>
-          <div class="ticket-opt" id="opt-gold" onclick="selectTicket('gold')">
-            <div>
-              <div class="ticket-name">Gold</div>
-              <div class="ticket-desc" id="desc-gold">Sisa kuota: ...</div>
-            </div>
-            <div class="ticket-price">IDR 250.000</div>
-          </div>
-          <div class="ticket-opt" id="opt-silver" onclick="selectTicket('silver')">
-            <div>
-              <div class="ticket-name">Silver</div>
-              <div class="ticket-desc" id="desc-silver">Sisa kuota: ...</div>
-            </div>
-            <div class="ticket-price">IDR 150.000</div>
-          </div>
-          <div class="ticket-opt" id="opt-bronze" onclick="selectTicket('bronze')">
-            <div>
-              <div class="ticket-name">Bronze</div>
-              <div class="ticket-desc" id="desc-bronze">Sisa kuota: ...</div>
-            </div>
-            <div class="ticket-price">IDR 25.000</div>
-          </div>
-          <!-- Hanya tampil saat FREE_EVENT = true -->
-          <div class="ticket-opt" id="opt-free" onclick="selectTicket('free')" style="display:none">
-            <div>
-              <div class="ticket-name">Free ticket</div>
-              <div class="ticket-desc" id="desc-free">Sisa kuota: ...</div>
-            </div>
-          </div>
-        </div>
+        <div class="ticket-options" id="ticket-options" style="display:none"></div>
       </div>
       <!--<div class="field">
         <label>Apakah Anda akan membawa alat bantu? *</label>
@@ -540,19 +483,14 @@
 // ============================================================
 const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbxn1EMrC16yiqu8d15hjV5i1N3DI6J5m3kgfoupe_9yyecDKCOF3McTpkV6e-R4aRX_/exec';
 const PANITIA_WA  = '6282342968231'; /== format 628xxxxxxxx ==/
-const MAX_QUOTA   = 1011;
 const SCANNER_PW  = '778899';
 const MAX_TRIES   = 5;
 
-const QUOTA = { platinum: 96, gold: 122, silver: 143, bronze: 650, free: MAX_QUOTA };
-
-const TIKET = {
-  platinum: { label: 'Platinum', nominal: 350000, display: 'IDR 350.000' },
-  gold:     { label: 'Gold',     nominal: 250000, display: 'IDR 250.000' },
-  silver:   { label: 'Silver',   nominal: 150000, display: 'IDR 150.000' },
-  bronze:   { label: 'Bronze',   nominal: 25000,  display: 'IDR 25.000'  },
-  free:     { label: 'Free ticket', nominal: 0,    display: 'Gratis'      }
-};
+// Nama, kuota, dan harga kategori tiket serta kuota total TIDAK diatur di sini. Atur hanya di Code.gs
+// (TICKETS dan MAX_QUOTA); halaman ini membacanya dari server. Diisi otomatis oleh buildTicketUI().
+let   MAX_QUOTA = 0;
+const QUOTA = {};   // key kategori -> kuota
+const TIKET = {};   // key kategori -> { label, nominal, display }
 
 const EVENT_TITLE = 'Malam Pujian bersama Rm Eko Wahyu';
 const EVENT_DATE  = '4 November 2026';
@@ -597,21 +535,20 @@ function applyFreeEventMode() {
   const free = FREE_EVENT;
   // Harga tiket hanya tampil saat acara berbayar
   document.querySelectorAll('.ticket-price').forEach(el => el.style.display = free ? 'none' : '');
-  // 4 kategori berbayar (pilihan + bar kuota) hanya tampil saat acara berbayar
+  // Kategori berbayar (pilihan + bar kuota) hanya tampil saat acara berbayar
   PAID_TICKETS.forEach(t => {
     const opt  = document.getElementById('opt-' + t);
     if (opt) opt.style.display = free ? 'none' : '';
-    const fill = document.getElementById('quota-fill-' + t);
-    const item = fill && fill.closest('.quota-item');
+    const item = document.getElementById('quota-item-' + t);
     if (item) item.style.display = free ? 'none' : '';
   });
-  // "Free ticket" hanya tampil saat acara gratis dan terpilih otomatis
-  const freeOpt = document.getElementById('opt-free');
+  // Kategori gratis hanya tampil saat acara gratis dan terpilih otomatis
+  const freeOpt = document.getElementById('opt-' + FREE_TICKET_KEY);
   if (freeOpt) freeOpt.style.display = free ? 'flex' : 'none';
-  const freeBar = document.getElementById('quota-item-free');
-  if (freeBar) freeBar.style.display = free ? 'block' : 'none';
-  if (free) selectTicket('free');
-  else if (selectedTicket === 'free') selectTicket(null);
+  const freeBar = document.getElementById('quota-item-' + FREE_TICKET_KEY);
+  if (freeBar) freeBar.style.display = free ? '' : 'none';
+  if (free) selectTicket(FREE_TICKET_KEY);
+  else if (selectedTicket === FREE_TICKET_KEY) selectTicket(null);
   // Bagian "Verifikasi Pembayaran" di tab scan disembunyikan saat acara gratis
   document.querySelectorAll('.verify-section').forEach(el => {
     if (el.querySelector('h4') && el.querySelector('h4').textContent.includes('Verifikasi')) {
@@ -641,9 +578,73 @@ let selectedTicket  = null;
 let codeReader      = null;
 let pwTries         = 0;
 
-// Daftar kategori: acara berbayar memakai 4 kategori, acara gratis hanya 'free'
-const PAID_TICKETS = ['platinum','gold','silver','bronze'];
-function activeTickets() { return FREE_EVENT ? ['free'] : PAID_TICKETS; }
+// Kategori diambil dari server (TICKETS di Code.gs): acara berbayar memakai semua kategori, acara gratis hanya satu
+let PAID_TICKETS    = [];
+let FREE_TICKET_KEY = 'free';
+let uiSignature     = '';   // sidik jari data kategori; tampilan dibuat ulang hanya kalau datanya berubah
+function activeTickets() { return FREE_EVENT ? [FREE_TICKET_KEY] : PAID_TICKETS; }
+
+// Info kategori untuk teks pesan dan lencana; aman untuk kategori kosong atau tidak dikenal
+function tiketInfo(key) {
+  const k = String(key || '').trim().toLowerCase();
+  return TIKET[k] || { label: k, nominal: 0, display: '' };
+}
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+function formatRupiah(n) {
+  return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+// Warna bar kuota menurut urutan kategori (kosong = warna bawaan)
+const QUOTA_COLORS = ['', '#FFD966', '#F4B8D1', '#F4B8D1'];
+
+// Membuat pilihan tiket dan bar kuota dari data server (Code.gs: TICKETS, FREE_TICKET, MAX_QUOTA)
+function buildTicketUI(data) {
+  const list = data.tickets;
+  const free = data.freeTicket || { key: 'free', label: 'Free ticket' };
+  MAX_QUOTA       = Number(data.max) || 0;
+  PAID_TICKETS    = list.map(t => String(t.key));
+  FREE_TICKET_KEY = String(free.key);
+  selectedTicket  = null;
+  [TIKET, QUOTA].forEach(o => Object.keys(o).forEach(k => delete o[k]));
+  list.forEach(t => {
+    TIKET[t.key] = { label: t.label, nominal: Number(t.price) || 0, display: 'IDR ' + formatRupiah(t.price) };
+    QUOTA[t.key] = Number(t.quota) || 0;
+  });
+  TIKET[free.key] = { label: free.label, nominal: 0, display: 'Gratis' };
+  QUOTA[free.key] = MAX_QUOTA;
+
+  const row  = document.getElementById('quota-row');
+  const opts = document.getElementById('ticket-options');
+  row.textContent  = '';
+  opts.textContent = '';
+  const all = list
+    .map((t, i) => ({ key: String(t.key), label: t.label, price: t.price, paid: true, color: QUOTA_COLORS[i % QUOTA_COLORS.length] }))
+    .concat([{ key: FREE_TICKET_KEY, label: free.label, paid: false, color: '' }]);
+
+  all.forEach(t => {
+    // bar kuota di bagian atas halaman
+    const item = document.createElement('div');
+    item.className = 'quota-item';
+    item.id = 'quota-item-' + t.key;
+    item.innerHTML =
+      '<div class="quota-label">' + esc(t.label) + ' <span id="quota-' + esc(t.key) + '-count">...</span></div>' +
+      '<div class="quota-bar"><div class="quota-fill" id="quota-fill-' + esc(t.key) + '" style="width:0%' + (t.color ? ';background:' + t.color : '') + '"></div></div>';
+    row.appendChild(item);
+
+    // pilihan tiket di formulir
+    const opt = document.createElement('div');
+    opt.className = 'ticket-opt';
+    opt.id = 'opt-' + t.key;
+    opt.innerHTML =
+      '<div><div class="ticket-name">' + esc(t.label) + '</div>' +
+      '<div class="ticket-desc" id="desc-' + esc(t.key) + '">Sisa kuota: ...</div></div>' +
+      (t.paid ? '<div class="ticket-price">IDR ' + formatRupiah(t.price) + '</div>' : '');
+    opt.addEventListener('click', () => selectTicket(t.key));
+    opts.appendChild(opt);
+  });
+}
 
 // ============================================================
 //  QUOTA
@@ -653,25 +654,22 @@ async function loadQuota() {
   try {
     const res  = await fetch(SCRIPT_URL + '?action=quota');
     const data = await res.json();
+    if (!Array.isArray(data.tickets)) throw new Error('Data kategori tiket tidak diterima dari server');
 
     // Mode acara (gratis / berbayar) ditentukan di Code.gs dan dibaca dari sini
     if (typeof data.freeEvent === 'boolean') FREE_EVENT = data.freeEvent;
+
+    // Nama, kuota, dan harga kategori ditentukan di Code.gs (TICKETS); tampilan dibuat ulang hanya kalau datanya berubah
+    const signature = JSON.stringify([data.tickets, data.freeTicket, data.max]);
+    if (signature !== uiSignature) { buildTicketUI(data); uiSignature = signature; }
     applyFreeEventMode();
 
     // Awalan nomor registrasi ditentukan di Code.gs (ID_PREFIX); contoh di kolom isian dibuat dari sini
     if (data.idPrefix) applyIdPrefix(String(data.idPrefix));
 
-    const counts = {
-      platinum:  data.platinum  !== undefined ? data.platinum  : 0,
-      gold:   data.gold   !== undefined ? data.gold   : 0,
-      silver:  data.silver  !== undefined ? data.silver  : 0,
-      bronze:  data.bronze  !== undefined ? data.bronze  : 0,
-      // Acara gratis: kuota dihitung dari total pendaftar (sama dengan yang dicek server)
-      free:    data.total   !== undefined ? data.total   : 0
-    };
-
     activeTickets().forEach(t => {
-      const cnt  = counts[t];
+      // Acara gratis: kuota dihitung dari total pendaftar (sama dengan yang dicek server)
+      const cnt  = t === FREE_TICKET_KEY ? (data.total || 0) : (data[t] || 0);
       const max  = QUOTA[t];
       const sisa = max - cnt;
       const pct  = Math.min((cnt / max) * 100, 100).toFixed(1);
@@ -694,22 +692,21 @@ async function loadQuota() {
     });
 
   } catch(e) {
-    activeTickets().forEach(t => {
-      const label = document.getElementById('quota-' + t + '-count');
-      const desc  = document.getElementById('desc-' + t);
-      const opt   = document.getElementById('opt-' + t);
-      if (label) label.textContent = '-';
-      if (desc)  desc.textContent  = 'Tidak dapat memuat';
-      if (opt)   { opt.style.opacity = '1'; opt.style.pointerEvents = 'auto'; opt.style.cursor = 'pointer'; }
-    });
+    // Belum ada kategori yang pernah dimuat: beri tahu peserta. Kalau sudah pernah dimuat, biarkan tampilan yang ada.
+    if (!uiSignature) {
+      const tl = document.getElementById('ticket-loading');
+      if (tl) tl.textContent = 'Kategori tiket tidak dapat dimuat. Periksa koneksi internet, lalu muat ulang halaman.';
+    }
   } finally {
-    // Tampilkan bagian yang disembunyikan selama menunggu server (berhasil maupun gagal memuat)
-    const qw = document.getElementById('quota-bar-wrap');
-    if (qw) qw.style.display = '';
-    const tl = document.getElementById('ticket-loading');
-    if (tl) tl.style.display = 'none';
-    const to = document.getElementById('ticket-options');
-    if (to) to.style.display = '';
+    // Tampilkan bagian yang disembunyikan selama menunggu server, hanya kalau kategori berhasil dimuat
+    if (uiSignature) {
+      const qw = document.getElementById('quota-bar-wrap');
+      if (qw) qw.style.display = '';
+      const tl = document.getElementById('ticket-loading');
+      if (tl) tl.style.display = 'none';
+      const to = document.getElementById('ticket-options');
+      if (to) to.style.display = '';
+    }
   }
 }
 
@@ -718,10 +715,7 @@ async function loadQuota() {
 // ============================================================
 function selectTicket(type) {
   selectedTicket = type;
-  ['platinum','gold','silver','bronze','free'].forEach(t => {
-    const opt = document.getElementById('opt-' + t);
-    if (opt) opt.classList.toggle('selected', t === type);
-  });
+  document.querySelectorAll('.ticket-opt').forEach(opt => opt.classList.toggle('selected', opt.id === 'opt-' + type));
 }
 
 /*function selectAlat(type) {
@@ -799,7 +793,7 @@ async function submitForm() {
 //  SHOW PAYMENT CARD
 // ============================================================
 function showPaymentCard(data) {
-  const t = TIKET[(data.tiket || '').toString().trim().toLowerCase()] || TIKET.platinum;
+  const t = tiketInfo(data.tiket);
   document.getElementById('pay-reg-id').textContent  = data.id;
   document.getElementById('pay-nominal').textContent = t.display;
   document.getElementById('pay-tiket').textContent   = 'Kategori: ' + t.label;
@@ -821,7 +815,7 @@ function showFreeQR(data) {
   const qrEl = document.getElementById('qrcode-main');
   qrEl.innerHTML = '';
   new QRCode(qrEl, {
-    text: data.id + '|' + data.nama + '|' + data.phone + '|' + (data.tiket || 'bronze'),
+    text: data.id + '|' + data.nama + '|' + data.phone + '|' + (data.tiket || ''),
     width: 210, height: 210,
     colorDark: '#085041', colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.H
@@ -839,7 +833,7 @@ function showFreeQR(data) {
 function sendPaymentWA() {
   if (!registeredData) return;
   const d = registeredData;
-  const t = TIKET[d.tiket] || TIKET.platinum;
+  const t = tiketInfo(d.tiket);
   const msg =
     '🙏 *Bukti Pembayaran Worship Night 2026*\n\n' +
     '🪪 *ID Registrasi:* `' + d.id + '`\n' +
@@ -859,7 +853,7 @@ function sendPaymentWA() {
 function sendReminderWA() {
   if (!lookupData) return;
   const d = lookupData;
-  const t = TIKET[d.tiket] || TIKET.platinum;
+  const t = tiketInfo(d.tiket);
   const msg =
     '🙏 *Konfirmasi Pembayaran Worship Night 2026*\n\n' +
     'Saya ingin menanyakan status pembayaran saya:\n\n' +
@@ -877,7 +871,7 @@ function sendReminderWA() {
 function renderQR(elId, data) {
   document.getElementById(elId).innerHTML = '';
   new QRCode(document.getElementById(elId), {
-    text: data.id + '|' + data.nama + '|' + data.phone + '|' + (data.tiket || 'platinum'),
+    text: data.id + '|' + data.nama + '|' + data.phone + '|' + (data.tiket || ''),
     width: 210, height: 210,
     colorDark: '#085041', colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.H
@@ -885,9 +879,9 @@ function renderQR(elId, data) {
 }
 
 function ticketBadgeHTML(tiket) {
-  const cls = { platinum: 'badge-platinum', gold: 'badge-gold', silver: 'badge-silver', bronze: 'badge-bronze', free: 'badge-free' };
-  const lbl = { platinum: 'Platinum', gold: 'Gold', silver: 'Silver', bronze: 'Bronze', free: 'Free ticket' };
-  return '<span class="ticket-badge ' + (cls[tiket]||'badge-platinum') + '">' + (lbl[tiket]||tiket) + '</span>';
+  const k   = String(tiket || '').trim().toLowerCase();
+  const cls = ['platinum', 'gold', 'silver', 'bronze', 'free'].indexOf(k) >= 0 ? 'badge-' + k : 'badge-other';
+  return '<span class="ticket-badge ' + cls + '">' + esc(tiketInfo(k).label || k) + '</span>';
 }
 
 // ============================================================
@@ -897,7 +891,7 @@ function shareWA(mode) {
   const d = mode === 'reg' ? registeredData : lookupData;
   if (!d) return;
   const tiketClean = (d.tiket || '').toString().trim().toLowerCase();
-  const t = TIKET[tiketClean] || TIKET.platinum;
+  const t = tiketInfo(tiketClean);
   const id = String(d.id);
 
   const phoneStr = String(d.phone).replace(/\D/g, '');
@@ -925,7 +919,7 @@ function shareWA(mode) {
 // ============================================================
 function resetForm() {
   ['nama','phone','phone2','kota','pd'].forEach(id => document.getElementById(id).value = '');
-  ['platinum','silver','gold','bronze','free'].forEach(t => document.getElementById('opt-' + t).classList.remove('selected'));
+  document.querySelectorAll('.ticket-opt').forEach(e => e.classList.remove('selected'));
   /*['ranjang','kursi','tidak'].forEach(t => {
     const opt = document.getElementById('alat-' + t);
     const inp = document.getElementById('r-' + t);
@@ -933,7 +927,7 @@ function resetForm() {
     if (inp) inp.checked = false;
   });*/
   selectedTicket = null;
-  if (FREE_EVENT) selectTicket('free'); // acara gratis: kategori terpilih otomatis lagi
+  if (FREE_EVENT) selectTicket(FREE_TICKET_KEY); // acara gratis: kategori terpilih otomatis lagi
   /*selectedAlat   = null;*/
   registeredData = null;
   document.getElementById('payment-card').style.display  = 'none';
@@ -972,7 +966,7 @@ async function doLookup() {
 
       results.forEach((r, idx) => {
         const isLunas = String(r.payment).trim().toLowerCase() === 'lunas';
-        const t = TIKET[r.tiket] || TIKET.platinum;
+        const t = tiketInfo(r.tiket);
 
         const card = document.createElement('div');
         card.style.cssText = 'background:white;border:2px solid ' + (isLunas ? 'var(--green)' : 'var(--amber)') + ';border-radius:14px;overflow:hidden;margin-bottom:1rem;';
@@ -985,7 +979,7 @@ async function doLookup() {
           '</div>' +
           '<div style="padding:1.1rem;text-align:center">' +
             '<div style="font-family:monospace;font-size:1.2rem;font-weight:800;color:' + (isLunas ? 'var(--green)' : 'var(--amber)') + ';letter-spacing:2px;margin-bottom:0.5rem">' + r.id + '</div>' +
-            ticketBadgeHTML(r.tiket || 'platinum') +
+            ticketBadgeHTML(r.tiket || '') +
             '<div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.4rem;margin-bottom:0.9rem">' +
               r.phone + (r.kota ? '  •  ' + r.kota : '') + (r.pd ? '  •  ' + r.pd : '') +
             '</div>' +
@@ -1014,7 +1008,7 @@ async function doLookup() {
             const qrEl = document.getElementById('qrcode-lookup-' + idx);
             if (qrEl) {
               new QRCode(qrEl, {
-                text: r.id + '|' + r.nama + '|' + r.phone + '|' + (r.tiket || 'platinum'),
+                text: r.id + '|' + r.nama + '|' + r.phone + '|' + (r.tiket || ''),
                 width: 200, height: 200,
                 colorDark: '#085041', colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.H
@@ -1042,7 +1036,7 @@ function shareWAItem(idx) {
   if (!results || !results[parseInt(idx)]) return;
   const r = results[parseInt(idx)];
   const tiketClean = (r.tiket || '').toString().trim().toLowerCase();
-  const t = TIKET[tiketClean] || TIKET.platinum;
+  const t = tiketInfo(tiketClean);
   const id = String(r.id);
   const phoneStr = String(r.phone).replace(/\D/g, '');
   let wa;
@@ -1090,7 +1084,7 @@ async function verifyPayment() {
       lastVerifiedData = data;
       div.innerHTML =
         '<div class="v-name">✅ ' + data.nama + ' — Pembayaran Dikonfirmasi</div>' +
-        '<div class="v-detail">' + data.id + '  •  ' + (TIKET[data.tiket]||TIKET.platinum).display + '  •  ' + data.verified_time + '</div>' +
+        '<div class="v-detail">' + data.id + '  •  ' + tiketInfo(data.tiket).display + '  •  ' + data.verified_time + '</div>' +
         '<div class="v-detail" style="margin-top:0.4rem">Link WA siap dikirim ke peserta ↓</div>' +
         '<button class="wa-btn" id="send-verified-wa-btn" onclick="sendVerifiedWA();" style="margin-top:0.6rem;width:100%;justify-content:center">' +
         '📲 Kirim Notifikasi ke Peserta</button>';
@@ -1114,7 +1108,7 @@ function sendVerifiedWA() {
     alert('Data peserta tidak ditemukan. Silakan verifikasi ulang.');
     return;
   }
-  const t = TIKET[(data.tiket || '').toString().trim().toLowerCase()] || TIKET.platinum;
+  const t = tiketInfo(data.tiket);
 
   // phone may come as number from Apps Script — convert to string first
   const phoneStr = String(data.phone).replace(/\D/g, '');
@@ -1273,7 +1267,7 @@ async function checkAttendance(qrText) {
     const url  = SCRIPT_URL + '?' + new URLSearchParams({ action: 'checkin', qr: qrText });
     const res  = await fetch(url);
     const data = await res.json();
-    const t    = TIKET[(data.tiket || '').toString().trim().toLowerCase()] || { label: '' };
+    const t    = tiketInfo(data.tiket);
 
     if (data.status === 'success') {
       div.style.background = 'var(--green-light)'; div.style.borderColor = '#9FE1CB';
