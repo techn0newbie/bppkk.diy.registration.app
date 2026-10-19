@@ -482,7 +482,7 @@
 //  ⚙️  KONFIGURASI — edit di sini saja
 // ============================================================
 const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbxn1EMrC16yiqu8d15hjV5i1N3DI6J5m3kgfoupe_9yyecDKCOF3McTpkV6e-R4aRX_/exec';
-const PANITIA_WA  = '6282342968231'; /== format 628xxxxxxxx ==/
+const PANITIA_WA  = '0811940020'; /== format 628xxxxxxxx ==/
 const SCANNER_PW  = '778899';
 const MAX_TRIES   = 5;
 
@@ -856,12 +856,12 @@ function sendReminderWA() {
   const t = tiketInfo(d.tiket);
   const msg =
     '🙏 *Konfirmasi Pembayaran BPPKK DIY 2026*\n\n' +
-    'Saya ingin menanyakan status pembayaran saya:\n\n' +
+    'Mohon bantuannya untuk mengkonfirmasi pembayaran saya:\n\n' +
     '🪪 *ID Registrasi:* `' + d.id + '`\n' +
     '👤 *Nama:* ' + d.nama + '\n' +
     '📱 *No HP:* ' + d.phone + '\n' +
     '🎫 *Kategori:* ' + t.label + ' (' + t.display + ')\n\n' +
-    'Mohon bantuannya untuk mengkonfirmasi pembayaran saya. Terima kasih 🙏';
+    'Terima kasih 🙏';
   window.open('https://wa.me/' + PANITIA_WA + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
