@@ -408,7 +408,7 @@
       <p>Masukkan nomor WhatsApp atau ID registrasi untuk melihat status pembayaran dan QR Code Anda.</p>
       <div class="search-row">
         <input type="text" id="lookup-input" placeholder="No. WhatsApp tanpa 0, atau nomor registrasi"
-          maxlength="50" onkeydown="if(.key==='Enter') doLookup()">
+          maxlength="50" onkeydown="if(event.key==='Enter') doLookup()">
         <button onclick="doLookup()">Cari</button>
       </div>
       <div id="lookup-alert"></div>
@@ -425,7 +425,7 @@
       <p>Tab ini hanya untuk operator pendaftaran.<br>Masukkan kata sandi untuk melanjutkan.</p>
       <div class="pw-field">
         <input type="password" id="pw-input" placeholder="••••••" maxlength="10"
-          onkeydown="if(.key==='Enter') checkPassword()">
+          onkeydown="if(event.key==='Enter') checkPassword()">
         <button onclick="checkPassword()">Masuk</button>
       </div>
       <div class="pw-error" id="pw-error"></div>
