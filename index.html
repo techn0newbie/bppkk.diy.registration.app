@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="only light">
 <title>BPPKK DIY Registration App</title>
 <link rel="icon" href="favicon.png" type="image/png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -10,6 +11,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
+    color-scheme: only light;
     --green: #1a56db; --green-light: #EBF5FF; --green-dark: #1a3a6e;
     --teal: #1447c0; --amber: #BA7517; --amber-light: #FAEEDA;
     --text: #2C2C2A; --text-muted: #5F5E5A;
@@ -142,7 +144,8 @@
   .badge-free     { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
   .badge-other    { background: #eceff1; color: #37474f; border: 1px solid #b0bec5; }
   .qr-center { display: flex; justify-content: center; margin-bottom: 0.75rem; }
-  .qr-center canvas, .qr-center img { border-radius: 10px; border: 5px solid var(--green-light); }
+  .qr-center canvas, .qr-center img { border-radius: 10px; border: 12px solid #ffffff; box-shadow: 0 0 0 1px #c9d1d9; background: #ffffff; }
+  .qr-hint { text-align: center; font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.9rem; }
   .res-name { font-size: 1rem; font-weight: 700; color: var(--text); }
   .res-detail { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; margin-bottom: 1rem; }
 
@@ -387,6 +390,7 @@
           <span class="ticket-badge" id="res-badge"></span>
         </div>
         <div class="qr-center" id="qrcode-main"></div>
+        <p class="qr-hint">Naikkan kecerahan layar dan matikan mode gelap saat scan.</p>
         <div class="res-name" id="res-nama"></div>
         <div class="res-detail" id="res-detail"></div>
         <div class="action-row">
@@ -822,7 +826,7 @@ function showFreeQR(data) {
   new QRCode(qrEl, {
     text: data.id + '|' + data.nama + '|' + data.phone + '|' + (data.tiket || ''),
     width: 210, height: 210,
-    colorDark: '#085041', colorLight: '#ffffff',
+    colorDark: '#000000', colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.H
   });
 
@@ -860,7 +864,7 @@ function sendReminderWA() {
   const d = lookupData;
   const t = tiketInfo(d.tiket);
   const msg =
-    '🙏 *Konfirmasi Pembayaran BPPKK DIY 2026*\n\n' +
+    '*Konfirmasi Pembayaran BPPKK DIY 2026*\n\n' +
     'Mohon bantuannya untuk mengkonfirmasi pembayaran saya:\n\n' +
     '🪪 *ID Registrasi:* `' + d.id + '`\n' +
     '👤 *Nama:* ' + d.nama + '\n' +
@@ -878,7 +882,7 @@ function renderQR(elId, data) {
   new QRCode(document.getElementById(elId), {
     text: data.id + '|' + data.nama + '|' + data.phone + '|' + (data.tiket || ''),
     width: 210, height: 210,
-    colorDark: '#085041', colorLight: '#ffffff',
+    colorDark: '#000000', colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.H
   });
 }
@@ -985,7 +989,8 @@ async function doLookup() {
               r.phone + (r.kota ? '  •  ' + r.kota : '') + (r.pd ? '  •  ' + r.pd : '') +
             '</div>' +
             (isLunas || FREE_EVENT
-              ? '<div id="qrcode-lookup-' + idx + '" style="display:flex;justify-content:center;margin-bottom:0.75rem"></div>' +
+              ? '<div id="qrcode-lookup-' + idx + '" class="qr-center" style="margin-bottom:0.25rem"></div>' +
+                '<p class="qr-hint">Naikkan kecerahan layar dan matikan mode gelap saat scan.</p>' +
                 '<div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap">' +
                   '<button class="wa-btn" data-idx="' + idx + '" onclick="shareWAItem(this.dataset.idx)">📤 Kirim WA</button>' +
                   '<button class="print-btn" onclick="window.print()">🖨️ Cetak</button>' +
@@ -1011,7 +1016,7 @@ async function doLookup() {
               new QRCode(qrEl, {
                 text: r.id + '|' + r.nama + '|' + r.phone + '|' + (r.tiket || ''),
                 width: 200, height: 200,
-                colorDark: '#085041', colorLight: '#ffffff',
+                colorDark: '#000000', colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.H
               });
             }
