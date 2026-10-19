@@ -492,13 +492,13 @@ let   MAX_QUOTA = 0;
 const QUOTA = {};   // key kategori -> kuota
 const TIKET = {};   // key kategori -> { label, nominal, display }
 
-const EVENT_TITLE = 'Malam Pujian bersama Rm Eko Wahyu';
-const EVENT_DATE  = '4 November 2026';
+const EVENT_TITLE = 'BPPKK DIY REGISTRATION APP';
+const EVENT_DATE  = '2026';
 const EVENT_CITY  = 'Yogyakarta';
 
-const BANK_NAME   = 'Mandiri';
-const BANK_NOREK  = '1370 0286 3384 6';
-const BANK_ATAS   = 'Cornelia Christiani';
+const BANK_NAME   = 'BCA';
+const BANK_NOREK  = '0000 0000 0000 0000 00';
+const BANK_ATAS   = 'BPPKK DIY';
 
 // Mode acara gratis / berbayar TIDAK diatur di sini. Atur hanya di Code.gs (const FREE_EVENT);
 // halaman ini membacanya otomatis dari server saat dibuka. Nilai di bawah hanya penampung sementara.
@@ -835,7 +835,7 @@ function sendPaymentWA() {
   const d = registeredData;
   const t = tiketInfo(d.tiket);
   const msg =
-    '🙏 *Bukti Pembayaran Worship Night 2026*\n\n' +
+    '🙏 *Bukti Pembayaran BPPKK DIY 2026*\n\n' +
     '🪪 *ID Registrasi:* `' + d.id + '`\n' +
     '👤 *Nama:* ' + d.nama + '\n' +
     '📱 *No HP:* ' + d.phone + '\n' +
@@ -855,7 +855,7 @@ function sendReminderWA() {
   const d = lookupData;
   const t = tiketInfo(d.tiket);
   const msg =
-    '🙏 *Konfirmasi Pembayaran Worship Night 2026*\n\n' +
+    '🙏 *Konfirmasi Pembayaran BPPKK DIY 2026*\n\n' +
     'Saya ingin menanyakan status pembayaran saya:\n\n' +
     '🪪 *ID Registrasi:* `' + d.id + '`\n' +
     '👤 *Nama:* ' + d.nama + '\n' +
@@ -901,7 +901,7 @@ function shareWA(mode) {
   else                               wa = '62' + phoneStr;
 
   const msg =
-    '✅ *QR Code Worship Night 2026*\n\n' +
+    '✅ *QR Code BPPKK DIY 2026*\n\n' +
     '🪪 *ID Peserta:* `' + id + '`\n' +
     '👤 *Nama:* ' + d.nama + '\n' +
     '🎫 *Kategori:* ' + t.label + '\n' +
@@ -1044,7 +1044,7 @@ function shareWAItem(idx) {
   else if (phoneStr.startsWith('0')) wa = '62' + phoneStr.slice(1);
   else                               wa = '62' + phoneStr;
   const msg =
-    '✅ *QR Code Worship Night 2026*\n\n' +
+    '✅ *QR Code BPPKK DIY 2026*\n\n' +
     '🪪 *ID Peserta:* `' + id + '`\n' +
     '👤 *Nama:* ' + r.nama + '\n' +
     '🎫 *Kategori:* ' + t.label + '\n' +
