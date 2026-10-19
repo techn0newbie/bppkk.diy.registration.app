@@ -483,6 +483,11 @@
 // ============================================================
 const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbxn1EMrC16yiqu8d15hjV5i1N3DI6J5m3kgfoupe_9yyecDKCOF3McTpkV6e-R4aRX_/exec';
 const PANITIA_WA  = '62811940020'; /== format 628xxxxxxxx ==/
+
+// Mengubah nomor ke format WhatsApp (62...) dari tulisan apa pun: 0811.., +62 811.., 62811.., 811..
+function waNumber(n) {
+  return '62' + String(n).replace(/\D/g, '').replace(/^62/, '').replace(/^0+/, '');
+}
 const SCANNER_PW  = '778899';
 const MAX_TRIES   = 5;
 
@@ -844,7 +849,7 @@ function sendPaymentWA() {
     '🎫 *Kategori:* ' + t.label + '\n' +
     '💰 *Nominal:* ' + t.display + '\n\n' +
     '_[Lampirkan screenshot bukti transfer di sini]_';
-  window.open('https://wa.me/' + PANITIA_WA + '?text=' + encodeURIComponent(msg), '_blank');
+  window.open('https://wa.me/' + waNumber(PANITIA_WA) + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
 // ============================================================
@@ -862,7 +867,7 @@ function sendReminderWA() {
     '📱 *No HP:* ' + d.phone + '\n' +
     '🎫 *Kategori:* ' + t.label + ' (' + t.display + ')\n\n' +
     'Terima kasih 🙏';
-  window.open('https://wa.me/' + PANITIA_WA + '?text=' + encodeURIComponent(msg), '_blank');
+  window.open('https://wa.me/' + waNumber(PANITIA_WA) + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
 // ============================================================
@@ -894,11 +899,7 @@ function shareWA(mode) {
   const t = tiketInfo(tiketClean);
   const id = String(d.id);
 
-  const phoneStr = String(d.phone).replace(/\D/g, '');
-  let wa;
-  if (phoneStr.startsWith('62'))     wa = phoneStr;
-  else if (phoneStr.startsWith('0')) wa = '62' + phoneStr.slice(1);
-  else                               wa = '62' + phoneStr;
+  const wa = waNumber(d.phone);
 
   const msg =
     '✅ *QR Code BPPKK DIY 2026*\n\n' +
@@ -1038,11 +1039,7 @@ function shareWAItem(idx) {
   const tiketClean = (r.tiket || '').toString().trim().toLowerCase();
   const t = tiketInfo(tiketClean);
   const id = String(r.id);
-  const phoneStr = String(r.phone).replace(/\D/g, '');
-  let wa;
-  if (phoneStr.startsWith('62'))     wa = phoneStr;
-  else if (phoneStr.startsWith('0')) wa = '62' + phoneStr.slice(1);
-  else                               wa = '62' + phoneStr;
+  const wa = waNumber(r.phone);
   const msg =
     '✅ *QR Code BPPKK DIY 2026*\n\n' +
     '🪪 *ID Peserta:* `' + id + '`\n' +
@@ -1110,13 +1107,7 @@ function sendVerifiedWA() {
   }
   const t = tiketInfo(data.tiket);
 
-  // phone may come as number from Apps Script — convert to string first
-  const phoneStr = String(data.phone).replace(/\D/g, '');
-  // If starts with 62 already, keep it; if starts with 0, replace with 62; otherwise prepend 62
-  let wa;
-  if (phoneStr.startsWith('62'))      wa = phoneStr;
-  else if (phoneStr.startsWith('0'))  wa = '62' + phoneStr.slice(1);
-  else                                wa = '62' + phoneStr;
+  const wa = waNumber(data.phone);
 
   const id = String(data.id);
 
