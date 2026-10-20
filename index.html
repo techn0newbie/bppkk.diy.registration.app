@@ -145,6 +145,7 @@
   .badge-other    { background: #eceff1; color: #37474f; border: 1px solid #b0bec5; }
   .qr-center { display: flex; justify-content: center; margin-bottom: 0.75rem; }
   .qr-center canvas, .qr-center img { border-radius: 10px; border: 12px solid #ffffff; box-shadow: 0 0 0 1px #c9d1d9; background: #ffffff; }
+  .layout-img { width: 100%; height: auto; display: block; border-radius: 10px; border: 1px solid #c9d1d9; }
   .qr-hint { text-align: center; font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.9rem; }
   .res-name { font-size: 1rem; font-weight: 700; color: var(--text); }
   .res-detail { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem; margin-bottom: 1rem; }
@@ -271,6 +272,9 @@
       <div class="field">
         <label>Paroki / Persekutuan Doa <span class="opt">(opsional)</span></label>
         <input type="text" id="pd" placeholder="Nama persekutuan doa Anda" maxlength="100">
+      </div>
+      <div class="field" id="layout-wrap">
+        <a href="layout.jpg" target="_blank" rel="noopener"><img src="layout.jpg" alt="Denah tempat duduk" class="layout-img" onerror="document.getElementById('layout-wrap').style.display='none'"></a>
       </div>
       <div class="field">
         <label>Kategori Tiket *</label>
