@@ -546,7 +546,7 @@ const BASE_URL    = 'https://techn0newbie.github.io/bppkk.diy.registration.app/'
 function renderConfig() {
   // Event subtitle in header
   const sub = document.getElementById('event-subtitle');
-  if (sub) sub.textContent = EVENT_TITLE + ' • ' + EVENT_DATE + ' • ' + EVENT_CITY;
+  if (sub) sub.innerHTML = '<strong>' + esc(EVENT_TITLE) + '</strong> • <strong>' + esc(EVENT_DATE) + '</strong> • <strong>' + esc(EVENT_CITY) + '</strong>';
 
   // Bank box HTML (reusable)
   const bankHTML =
